@@ -3,6 +3,10 @@
  * @license MI
 */
 
+"use strict";
+
+
+// ----- Node modules -----
 const app = require('./app');           // Import the Express app from app.js
 const mongoose = require('mongoose');   // Import Mongoose for MongoDB connection
 require("dotenv").config();             // Load environment variables from the .env file

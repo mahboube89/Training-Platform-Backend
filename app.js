@@ -3,10 +3,13 @@
  * @license MI
 */
 
-"use strict"
+"use strict";
 
+// ----- Node modules -----
 const express = require('express'); // Import Express framework
 
-const app = express(); // Initialize Express application
+
+// ----- Initial express -----
+const app = express(); 
 
 module.exports = app;
