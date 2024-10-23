@@ -1,0 +1,46 @@
+{
+  "name": "training-platform-backend",
+  "version": "1.0.0",
+  "description": "A backend for a training and course platform built with Express.js. Provides APIs for managing courses, blogs, users, authentication, and CMS.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mahboube89/Training-Platform-Backend.git"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "expressjs",
+    "backend",
+    "API",
+    "mongoDB",
+    "training",
+    "courses",
+    "blog",
+    "education",
+    "JWT",
+    "RESTful API",
+    "learning-platform",
+    "user-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mahboube89/Training-Platform-Backend/issues"
+  },
+  "homepage": "https://github.com/mahboube89/Training-Platform-Backend#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "fastest-validator": "^1.19.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.7.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.15"
+  }
+}
