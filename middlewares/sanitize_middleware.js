@@ -13,8 +13,7 @@ const sanitizeInputs = (req, res, next) => {
 
     if (req.body.username) req.body.username = validator.escape(req.body.username);
     if (req.body.email) req.body.email = validator.normalizeEmail(req.body.email);
-    if (req.body.firstname) req.body.firstname = validator.escape(req.body.firstname);
-    if (req.body.lastname) req.body.lastname = validator.escape(req.body.lastname);
+    if (req.body.name) req.body.name = validator.escape(req.body.name);
 
     next(); // Pass control to the next middleware/controller
 };

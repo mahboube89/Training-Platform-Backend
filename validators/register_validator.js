@@ -12,8 +12,7 @@ const validator = require('fastest-validator');
 const userValidator = new validator();
 
 const schema = {
-    firstname: {type: "string", min: 3, max: 50, optional: true},
-    lastname: {type: "string", min: 3, max: 50, optional: true},
+    name: {type: "string", min: 3, max: 50, optional: true},
     username: {type: "string", min: 4, max: 30 },
     email: {type: "email"},
     password: {type: "string", min: 8},

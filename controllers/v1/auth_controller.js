@@ -27,7 +27,7 @@ exports.register = async(req, res) => {
         }
     
         // Destructure required fields from request body
-        const {firstname, lastname, username, email, password} = req.body;
+        const {name, username, email, password} = req.body;
     
         // Check if a user with the same username or email already exists
         const userAlreadyExist = await userModel.findOne(
@@ -48,8 +48,7 @@ exports.register = async(req, res) => {
     
         // Create a new user in the database
         const user = await userModel.create( {
-            firstname,
-            lastname,
+            name,
             username,
             email,
             password : hashedPassword,
