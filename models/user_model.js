@@ -1,6 +1,6 @@
 /**
  * @Copyright 2024 mae-mahboube89
- * @license MI
+ * @license MIT
 */
 
 "use strict";
