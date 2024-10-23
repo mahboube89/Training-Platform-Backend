@@ -1,14 +1,34 @@
-// Copyright 2024 mae
-// 
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-// 
-//     https://www.apache.org/licenses/LICENSE-2.0
-// 
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/**
+ * @Copyright 2024 mae-mahboube89
+ * @license MI
+*/
 
+const app = require('./app');           // Import the Express app from app.js
+const mongoose = require('mongoose');   // Import Mongoose for MongoDB connection
+require("dotenv").config();             // Load environment variables from the .env file
+
+const port = process.env.PORT;          // Define the port number from the environment variables
+
+
+// Immediately invoked async function to handle MongoDB connection
+(async () => {
+
+    try {
+
+        // Connect to MongoDB using the URL from environment variables
+        await mongoose.connect(process.env.MONGODB_URL);
+        console.log("Mongodb connected!"); 
+        
+    } catch (error) {
+
+        console.error("Failed to connect to MongoDB", error);
+        process.exit(1);  // Exit the process with an error code
+    }
+
+})();
+
+
+// Start the server and listen on the specified port
+app.listen(port , () => {
+    console.log(`Server running on port ${port}.`);  
+});
