@@ -43,5 +43,10 @@ app.use("/v1/auth", authRouter);
 // User routes under /v1/users
 app.use("/v1/users", userRouter);
 
+app.get("/", (req, res) => {
+    console.log(req.header("Authorization"));
+    
+})
+
 
 module.exports = app;
