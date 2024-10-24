@@ -18,6 +18,24 @@ const BanUserSchema = new mongoose.Schema({
         index: true,
         lowercase: true,
         trim: true
+    },
+    reason: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    bannedBy: {
+        type: String,
+        required: true, 
+        trim: true
+    },
+    isPermanent: {
+        type: Boolean,
+        default: true 
+    },
+    banExpiresAt: {
+        type: Date,
+        default: null 
     }
 }, {timestamps: true});
 

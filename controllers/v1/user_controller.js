@@ -22,19 +22,41 @@ exports.banUser = async (req, res) => {
         } 
 
         // Find the user in the main user model
-        const mainUser = await userModel.findById(req.params.id).lean();
+        const mainUser = await userModel.findById(req.params.id);
         if(!mainUser) {
             return res.status(404).json({message: "User not found."});
         }
 
         // Check if the user is already banned
-        const useralreadyBanned = await banUserModel.findOne({ email : mainUser.email});
-        if(useralreadyBanned) {
+        if(mainUser.status === "BANNED") {
             return res.status(409).json({ message: "User is already banned." });
         }
 
+        // Update the user status to 'BANNED'
+        user.status = "BANNED";
+        const updatedUser = await user.save();
+
+        if (!updatedUser) {
+            return res.status(500).json({ message: "Failed to update user status." });
+        }
+
+        // Ensure 'reason' is provided in the request body
+        const { reason, banExpiresAt } = req.body;
+        if (!reason) {
+            return res.status(400).json({ message: "Reason for ban is required." });
+        }
+
+        const bannedBy = req.user.username || req.user.id ;
+
         // Proceed to ban the user by adding them to the banned users collection
-        const banUserResult = await banUserModel.create({ email: mainUser.email});
+        const banUserResult = await banUserModel.create({
+             email: mainUser.email,
+             reason: reason,
+             bannedBy: bannedBy,
+             banExpiresAt: banExpiresAt || null           
+            });
+
+            
         if (!banUserResult) {
             return res.status(500).json({ message: "Failed to ban user." });
         }

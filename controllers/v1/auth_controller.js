@@ -13,10 +13,11 @@ const jwt = require('jsonwebtoken');
 // ----- Custom modules -----
 const userModel = require('../../models/user_model');
 const registerValidator = require('../../validators/register_validator');
+const banUserModel = require('./../../models/userBan_model');
 
 
 // ----- Register User -----
-exports.register = async(req, res) => {
+exports.register = async (req, res) => {
     try {
         
         // Validate incoming request body using the custom validator
@@ -28,18 +29,27 @@ exports.register = async(req, res) => {
     
         // Destructure required fields from request body
         const {name, username, email, password} = req.body;
-    
+
         // Check if a user with the same username or email already exists
-        const userAlreadyExist = await userModel.findOne(
-            {
+        const userAlreadyExist = await userModel.findOne({
                 $or: [ {username}, {email}]
-            }
-        );
+        });
     
         if(userAlreadyExist) {
-            return res.status(409).json( {message: "username or email is already taken."}); // Conflict error
+            
+            if(userAlreadyExist.status === "BANNED") {
+                return res.status(403).json( {message: "Registration failed. This account is banned and cannot be used."}); // Forbidden
+            }
+
+            if(userAlreadyExist.email === email) {
+                return res.status(409).json( {message: "The email address is already registered. Please use a different email."}); // Conflict error
+            }
+
+            if(userAlreadyExist.username === username) {
+                return res.status(409).json( {message: "The username is already taken. Please choose a different username." }); // Conflict error
+            }
         }
-    
+
         // Determine if the new user should be an ADMIN (if first user)
         const countOfUsers = await userModel.countDocuments();
     
