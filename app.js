@@ -13,6 +13,7 @@ const path = require('path');
 
 // ----- Custom modules -----
 const authRouter = require('./routes/v1/auth_route');
+const userRouter = require('./routes/v1/user_route');
 
 // ----- Initial express -----
 const app = express();
@@ -37,6 +38,9 @@ app.use(express.urlencoded({ extended: true}));
 
 // Authentication routes under /v1/auth
 app.use("/v1/auth", authRouter);
+
+// User routes under /v1/users
+app.use("/v1/users", userRouter);
 
 
 module.exports = app;

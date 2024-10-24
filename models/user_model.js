@@ -11,13 +11,7 @@ const mongoose = require('mongoose');
 
 // ----- Mongoose schema for user data -----
 const UserSchema = new mongoose.Schema({
-    firstname: {
-        type: String,
-        trim: true,
-        minLength: 3,
-        maxLength: 50
-    },
-    lastname: {
+    name: {
         type: String,
         trim: true,
         minLength: 3,
