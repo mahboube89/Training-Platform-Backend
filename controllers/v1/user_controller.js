@@ -23,6 +23,8 @@ exports.banUser = async (req, res) => {
 
         // Find the user in the main user model
         const mainUser = await userModel.findById(req.params.id);
+        console.log("main user:", mainUser);
+        
         if(!mainUser) {
             return res.status(404).json({message: "User not found."});
         }
@@ -32,32 +34,40 @@ exports.banUser = async (req, res) => {
             return res.status(409).json({ message: "User is already banned." });
         }
 
-        // Update the user status to 'BANNED'
-        user.status = "BANNED";
-        const updatedUser = await user.save();
-
-        if (!updatedUser) {
-            return res.status(500).json({ message: "Failed to update user status." });
-        }
-
         // Ensure 'reason' is provided in the request body
         const { reason, banExpiresAt } = req.body;
         if (!reason) {
             return res.status(400).json({ message: "Reason for ban is required." });
         }
 
-        const bannedBy = req.user.username || req.user.id ;
+        // If no expiration date, it's a permanent ban
+        const isPermanent = !banExpiresAt;
+
+        // Update the user status to 'BANNED'
+        mainUser.status = "BANNED";
+        const updatedUser = await mainUser.save();
+        console.log("updated user: ", updatedUser);
+
+        if (!updatedUser) {
+            return res.status(500).json({ message: "Failed to update user status." });
+        }
+
+        // Get the admin who is banning the user
+        // const bannedBy = req.user.username || req.user.id ;
+        const bannedBy = "Missy"
 
         // Proceed to ban the user by adding them to the banned users collection
         const banUserResult = await banUserModel.create({
              email: mainUser.email,
              reason: reason,
              bannedBy: bannedBy,
+             isPermanent: isPermanent,
              banExpiresAt: banExpiresAt || null           
             });
-
             
         if (!banUserResult) {
+            mainUser.status = "ACTIVE";
+            await mainUser.save();
             return res.status(500).json({ message: "Failed to ban user." });
         }
 
