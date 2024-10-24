@@ -15,8 +15,15 @@ const verifyToken = require('./../../middlewares/tokenVerify_middleware');
 const checkAdmin = require('./../../middlewares/checkAdmin_middleware');
 
 
-router
-.route("/ban/:id")
+
+// ----- Routes -----
+
+// Get all users
+router.route("/")
+.get(verifyToken, checkAdmin, userController.getAllUsers);
+
+// Ban a user - Admin
+router.route("/ban/:id")
 .post(verifyToken, checkAdmin, userController.banUser);
 
 

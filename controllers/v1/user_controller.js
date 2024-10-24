@@ -15,8 +15,6 @@ const banUserModel = require("../../models/userBan_model");
 
 exports.banUser = async (req, res) => {
     try {
-
-        console.log("ID in banUser:",req.userId);
         
         // Validate the user ID
         if(!isValidObjectId(req.params.id)) {
@@ -25,7 +23,6 @@ exports.banUser = async (req, res) => {
 
         // Find the user in the main user model
         const mainUser = await userModel.findById(req.params.id);
-        console.log("main user:", mainUser);
         
         if(!mainUser) {
             return res.status(404).json({message: "User not found."});
@@ -48,7 +45,6 @@ exports.banUser = async (req, res) => {
         // Update the user status to 'BANNED'
         mainUser.status = "BANNED";
         const updatedUser = await mainUser.save();
-        console.log("updated user: ", updatedUser);
 
         if (!updatedUser) {
             return res.status(500).json({ message: "Failed to update user status." });
@@ -77,5 +73,26 @@ exports.banUser = async (req, res) => {
     } catch (error) {
         console.error("Error during bann: ", error.message);
         return res.status(500).json({message: "Internal server error."}) 
+    }
+};
+
+
+exports.getAllUsers = async(req,res) => {
+    try {
+        // Retrieve all users from the database
+        const users = await userModel.find({}).select("-password -_id -__v");
+
+        // The find({}) query will return an empty array [] if no users exist
+        // Check if there are no users
+        if(!users) {
+            return res.status(404).json({message: "No user to display."});
+        }
+
+        // Return the list of users
+        return res.status(200).json({ message: "Users retrieved successfully", users });
+
+    } catch (error) {
+        console.error("Error during get all users: ", error.message);
+        return res.status(500).json({message: "Internal server error."})
     }
 };

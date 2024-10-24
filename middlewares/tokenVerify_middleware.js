@@ -30,9 +30,7 @@ module.exports = async(req, res, next) => {
         const token = authHeader?.split(" ")[1];
 
         // Verify the JWT token
-        const jwtVerify = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("jwtVerify:", jwtVerify);
-        
+        const jwtVerify = jwt.verify(token, process.env.JWT_SECRET);       
 
         // Find the user by the decoded token's ID and attach to req.user
         const user = await userModel.findById(jwtVerify._id).lean();
