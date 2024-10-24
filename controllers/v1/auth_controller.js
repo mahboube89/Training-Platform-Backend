@@ -85,6 +85,50 @@ exports.register = async (req, res) => {
 
 exports.login = async(req, res) => {
 
+    try {
+        
+        const {identifier, password} = req.body;
+
+        // Find user by email or username
+        const user = await userModel.findOne({
+            $or:[{email: identifier}, {username: identifier}]
+        }).lean();
+
+        // Check if user exists
+        if(!user) {
+            return res.status(401).json({message: "user not found."});
+        }
+
+        // Check if the user is banned
+        if(user.status === "BANNED") {
+            return res.status(403).json({message: "This account is banned. Please contact support."});
+        }
+    
+        // Validate password
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);   
+        if(!isPasswordCorrect) {
+            return res.status(401).json({message: "Incorrect Password."});
+        }
+    
+        // Generate JWT token
+        const accessToken = jwt.sign({ _id: user._id}, process.env.JWT_SECRET, {expiresIn: "10d"});
+    
+        // Return some basic user information along with the token
+        res.json({
+            accessToken,
+            user: {
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                status: user.status
+            },
+            expiresIn: "10d"      
+        });
+
+    } catch (error) {
+        console.error("Error during login:", error);
+        return res.status(500).json({ message: "Internal server error." });
+    }
 };
 
 
