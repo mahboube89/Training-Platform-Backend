@@ -11,10 +11,13 @@ const router = express.Router();
 
 // ----- Custom modules -----
 const userController = require('./../../controllers/v1/user_controller');
-// const checkAdmin = require('./../../middlewares/checkAdmin_middleware');
+const verifyToken = require('./../../middlewares/tokenVerify_middleware');
+const checkAdmin = require('./../../middlewares/checkAdmin_middleware');
 
 
-router.post("/ban/:id", userController.banUser );
+router
+.route("/ban/:id")
+.post(verifyToken, checkAdmin, userController.banUser);
 
 
 module.exports = router;

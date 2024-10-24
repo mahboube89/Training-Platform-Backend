@@ -16,6 +16,8 @@ const banUserModel = require("../../models/userBan_model");
 exports.banUser = async (req, res) => {
     try {
 
+        console.log("ID in banUser:",req.userId);
+        
         // Validate the user ID
         if(!isValidObjectId(req.params.id)) {
             return res.status(422).json({ message: "Invalid user ID."});
@@ -52,9 +54,8 @@ exports.banUser = async (req, res) => {
             return res.status(500).json({ message: "Failed to update user status." });
         }
 
-        // Get the admin who is banning the user
-        // const bannedBy = req.user.username || req.user.id ;
-        const bannedBy = "Missy"
+        // Get the admin who is banning the user - in tokenverify middleware we attached the user object to the request
+        const bannedBy = req.userId; 
 
         // Proceed to ban the user by adding them to the banned users collection
         const banUserResult = await banUserModel.create({

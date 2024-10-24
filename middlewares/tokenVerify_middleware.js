@@ -14,7 +14,7 @@ const jwt = require('jsonwebtoken');
 const userModel = require("./../models/user_model");
 
 
-module.exports = async(req, res) => {
+module.exports = async(req, res, next) => {
 
     try {
 
@@ -27,19 +27,22 @@ module.exports = async(req, res) => {
         }
 
         // Extract the token from the Authorization header
-        const token = authHeader.split(" ")[1];
+        const token = authHeader?.split(" ")[1];
 
         // Verify the JWT token
         const jwtVerify = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("jwtVerify:", jwtVerify);
+        
 
         // Find the user by the decoded token's ID and attach to req.user
-        const user = await userModel.findById(jwtVerify.id).lean();
+        const user = await userModel.findById(jwtVerify._id).lean();
+        
         if (!user) {
             return res.status(404).json({ message: "User not found." });
         }
 
         // Attach the user object to the request
-        req.user = user;
+        req.userId = user._id;
         
         next();
         
