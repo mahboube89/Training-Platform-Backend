@@ -7,6 +7,8 @@
 
 // ----- Node modules -----
 const {isValidObjectId} = require ("mongoose");
+const bcrypt = require('bcrypt');
+
 
 // ----- Custom modules -----
 const userModel = require("./../../models/user_model");
@@ -177,4 +179,52 @@ exports.makeAuthor = async(req, res) => {
         return res.status(500).json({message: "Internal server error."}); 
     }
  
+};
+
+
+exports.updateUserInfos = async(req, res) => {
+    try {
+        
+        // Validate incoming request body using the custom validator
+        const isBodyValid = registerValidator(req.body);
+        
+        if(isBodyValid !== true) {
+            return res.status(422).json({errors: isBodyValid}); // Unprocessable Entity for validation errors
+        }
+    
+        // Destructure required fields from request body
+        const {name, username, email, password} = req.body;
+
+        // Prepare an update object only with the fields that are present in the request
+        const updateFields = {};
+
+        if(name) updateFields.name = name;
+        if(username) updateFields.username = username;
+        if(email) updateFields.email = email;
+
+        // Only hash and update password if it's provided
+        if(password){
+            // Hash the user's password using bcrypt before saving it
+            updateFields.password = await bcrypt.hash(password, 12);
+        }
+    
+        // Update user information and return the updated document
+        const user = await userModel.findByIdAndUpdate( req.user , updateFields, { new:true });
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+        
+        // Remove the password field before sending the response
+        const userObject = user.toObject();
+        Reflect.deleteProperty(userObject, "password");
+    
+        // Return the created user (without password) and the access token
+        return res.status(201).json( {user:userObject});
+
+
+    } catch (error) {
+        console.error("Error during update user data: ", error.message);
+        return res.status(500).json({message: "Internal server error."}); 
+    }
+
 };

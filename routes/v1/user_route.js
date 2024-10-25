@@ -13,14 +13,17 @@ const router = express.Router();
 const userController = require('./../../controllers/v1/user_controller');
 const verifyToken = require('./../../middlewares/tokenVerify_middleware');
 const checkAdmin = require('./../../middlewares/checkAdmin_middleware');
+const sanitizeInputs = require('./../../middlewares/sanitize_middleware');
 
 
 
 // ----- Routes -----
 
 // Get all users - Admin
+// Update user Infos - All
 router.route("/")
-.get(verifyToken, checkAdmin, userController.getAllUsers);
+.get(verifyToken, checkAdmin, userController.getAllUsers)
+.put(verifyToken, sanitizeInputs, userController.updateUserInfos);
 
 // Remove a user - Admin
 router.route("/:id")
@@ -30,7 +33,7 @@ router.route("/:id")
 router.route("/ban/:id")
 .post(verifyToken, checkAdmin, userController.banUser);
 
-// Change role to Author
+// Change role to Author - Admin
 router.route("/role")
 .put(verifyToken, checkAdmin, userController.makeAuthor);
 

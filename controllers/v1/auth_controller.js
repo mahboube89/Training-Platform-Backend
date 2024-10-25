@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
         const isBodyValid = registerValidator(req.body);
     
         if(isBodyValid !== true) {
-            return res.status(422).json(isBodyValid); // Unprocessable Entity for validation errors
+            return res.status(422).json({errors: isBodyValid}); // Unprocessable Entity for validation errors
         }
     
         // Destructure required fields from request body
