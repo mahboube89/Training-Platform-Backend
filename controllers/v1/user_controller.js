@@ -96,3 +96,32 @@ exports.getAllUsers = async(req,res) => {
         return res.status(500).json({message: "Internal server error."})
     }
 };
+
+
+exports.removeUser = async(req, res) => {
+    try {
+
+        // Validate the user ID
+        if(!isValidObjectId(req.params.id)) {
+            return res.status(422).json({ message: "Invalid user ID."});
+        }
+
+        // Attempt to find and delete the user by ID
+        const removedUser = await userModel.findByIdAndDelete(req.params.id);
+
+        // If no user is found to delete
+        if(!removedUser) {
+            return res.status(404).json({ message: "User not found to delete."});
+        }
+
+        // Remove user from bannedUsers collection if they exist there
+        await banUserModel.findOneAndDelete({ email:removedUser.email });
+
+        // Return success message if user was deleted
+        return res.status(200).json({ message: "User deleted successfully."});
+
+    } catch (error) {
+        console.error("Error during user removal: ", error.message);
+        return res.status(500).json({message: "Internal server error."}) 
+    }
+};
