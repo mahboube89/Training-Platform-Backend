@@ -125,3 +125,56 @@ exports.removeUser = async(req, res) => {
         return res.status(500).json({message: "Internal server error."}) 
     }
 };
+
+
+exports.makeAuthor = async(req, res) => {
+    try {
+
+        const {id} = req.body;
+
+        // check to ensure that req.body.id is provided
+        if (!id) {
+            return res.status(400).json({ message: "User ID is required." });
+        }
+    
+        // Validate the user ID
+        if(!isValidObjectId(id)) {
+            return res.status(422).json({ message: "Invalid user ID."});
+        }
+
+        // Find the user by ID and ensure they exist
+        const user = await userModel.findOne( {_id: id}).lean();
+        if(user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Check if the user is an admin
+        if (user.role === "ADMIN") {
+            return res.status(422).json({ message: "Cannot change role of an admin."});
+        }
+
+        // Check if the user is banned
+        if(user.status === "BANNED") {
+            return res.status(409).json({ message: "User is banned." });
+        }
+
+        // Check if the user is already an author
+        if (user.role === "AUTHOR") {
+            return res.status(422).json({ message: "User is already an author"});
+        }
+
+        // Update the user's role to "AUTHOR"
+        // { new: true } ensures that the function returns the updated user document instead of the original
+        const updatedUser = await userModel.findByIdAndUpdate( id, {role: "AUTHOR"}, {new: true}); // 
+        if (!updatedUser) {
+            return res.status(500).json({ message: "Failed to update user role." });
+        }
+
+        return res.status(200).json({ message: "Role chenged to author successfully"});
+        
+    } catch (error) {
+        console.error("Error during change role: ", error.message);
+        return res.status(500).json({message: "Internal server error."}); 
+    }
+ 
+};

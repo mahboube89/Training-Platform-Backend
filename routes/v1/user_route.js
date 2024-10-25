@@ -30,5 +30,10 @@ router.route("/:id")
 router.route("/ban/:id")
 .post(verifyToken, checkAdmin, userController.banUser);
 
+// Change role to Author
+router.route("/role")
+.put(verifyToken, checkAdmin, userController.makeAuthor);
+
+
 
 module.exports = router;
