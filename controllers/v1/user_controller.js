@@ -219,10 +219,17 @@ exports.updateUserInfos = async(req, res) => {
         Reflect.deleteProperty(userObject, "password");
     
         // Return the created user (without password) and the access token
-        return res.status(201).json( {user:userObject});
+        return res.status(200).json( {user:userObject});
 
 
     } catch (error) {
+
+        // Handle duplicate entry error for unique fields
+        if (error.code === 11000) {
+            const duplicateField = Object.keys(error.keyValue)[0];
+            return res.status(409).json({ message: `The ${duplicateField} is already in use.` });
+        }
+
         console.error("Error during update user data: ", error.message);
         return res.status(500).json({message: "Internal server error."}); 
     }
