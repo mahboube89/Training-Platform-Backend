@@ -14,6 +14,7 @@ const path = require('path');
 // ----- Custom modules -----
 const authRouter = require('./routes/v1/auth_route');
 const userRouter = require('./routes/v1/user_route');
+const categoryRouter = require('./routes/v1/category_route');
 
 
 // ----- Initial express -----
@@ -43,10 +44,8 @@ app.use("/v1/auth", authRouter);
 // User routes under /v1/users
 app.use("/v1/users", userRouter);
 
-app.get("/", (req, res) => {
-    console.log(req.header("Authorization"));
-    
-})
+// Category routes under /v1/category
+app.use("/v1/category", categoryRouter);
 
 
 module.exports = app;
