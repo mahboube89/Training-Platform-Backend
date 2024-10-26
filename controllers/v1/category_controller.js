@@ -5,6 +5,10 @@
 
 "use strict";
 
+// ----- Node modules -----
+const {isValidObjectId} = require ("mongoose");
+
+
 // ----- Custom modules -----
 const categoryModel = require("./../../models/category_model");
 const categoryValidator = require("./../../validators/category_validator");
@@ -63,7 +67,30 @@ exports.getAllCategory = async(req, res) => {
 };
 
 
-exports.removeCategory = async (req, res) => {};
+exports.removeCategory = async (req, res) => {
+    try {
+        
+        // Validate the category ID format
+        if(!isValidObjectId(req.params.id)) {
+            return res.status(422).json({ message: "Invalid category ID."});
+        }
+
+        // Attempt to find and delete the category by ID
+        const removedCategory = await categoryModel.findByIdAndDelete(req.params.id);
+
+        // Check if the category was not found
+        if(!removedCategory) {
+            return res.status(404).json({message: "Category not found to delete."});
+        }
+
+        // Return success message if category was deleted
+        return res.status(200).json({ message: "Category deleted successfully." , category: removedCategory });
+
+    } catch (error) {
+        console.error("Error during category removal: ", error.message);
+        return res.status(500).json({message: "Internal server error."}) 
+    }
+};
 
 
 exports.updateCategory = async (req, res) => {};
