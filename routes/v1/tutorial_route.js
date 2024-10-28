@@ -35,6 +35,9 @@ router.route("/")
 .get(verifyToken, checkAdmin, tutorialController.getAllTutorials);
 
 
+router.route("/sections")
+.get(verifyToken, checkAdmin, tutorialController.getAllSections);
+
 router.route("/:id/sections")
 .post(
     uploadVideo.single("video"), 

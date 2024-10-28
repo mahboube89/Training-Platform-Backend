@@ -20,7 +20,28 @@ const tutorialValidator = require("./../../validators/tutorial_validator");
 const sectionValidator = require("./../../validators/section_validator");
 
 exports.getAllTutorials = async (req, res) => {
-    
+
+};
+
+exports.getAllSections = async (req, res)=> {
+
+    try {
+        const sections = await sectionModel
+        .find({})
+        .populate("tutorialId", "title") // Populate only title of the related tutorial
+        .lean();
+
+        // If no sections found, return an empty array with a 200 status
+        if (sections.length === 0) {
+            return res.status(200).json({ message: "No sections available.", sections: [] });
+        }
+
+        return res.status(200).json({ message: "Sections retrieved successfully", sections });
+
+    } catch (error) {
+        console.error("Error during get all sections: ", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
 };
 
 
