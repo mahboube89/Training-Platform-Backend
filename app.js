@@ -15,6 +15,7 @@ const path = require('path');
 const authRouter = require('./routes/v1/auth_route');
 const userRouter = require('./routes/v1/user_route');
 const categoryRouter = require('./routes/v1/category_route');
+const tutorialRouter = require('./routes/v1/tutorial_route');
 
 
 // ----- Initial express -----
@@ -24,7 +25,7 @@ const app = express();
 // ----- Middleware -----
 
 // Serve static files for course covers (e.g., images)
-app.use("/cources/covers", express.static(path.join(__dirname, "public", "courses", "cover")));
+app.use("/cources/covers", express.static(path.join(__dirname, "public", "tutorials", "cover")));
 
 // Enable CORS for handling cross-origin requests
 app.use(cors());
@@ -46,6 +47,9 @@ app.use("/v1/users", userRouter);
 
 // Category routes under /v1/category
 app.use("/v1/category", categoryRouter);
+
+// Tutorial routes under /v1/tutorial
+app.use("/v1/tutorial", tutorialRouter);
 
 
 module.exports = app;

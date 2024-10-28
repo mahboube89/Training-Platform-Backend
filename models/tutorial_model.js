@@ -27,7 +27,7 @@ const TutorialSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    instructor: {
+    instructorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
@@ -43,20 +43,33 @@ const TutorialSchema = new mongoose.Schema({
     },
     price: {
         type: Number,
-        required: true,
+        required: function() {return !this.isFree; },
         min: 0
+    },
+    isFree: {
+        type: Boolean,
+        default: false
     },
     status: {
         type: String,
-        enum: ["Compelete", "Incomplete"],
+        enum: ["COMPLETE", "INCOMPLETE"],
         required: true
     },
     onSale: {
         type: Boolean,
         default: false
+    },
+    createdBy:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     }
 
 }, {timestamps: true});
+
+
+// Add unique compound index on title and categoryId
+TutorialSchema.index({ title: 1, categoryId: 1 }, { unique: true });
 
 
 // Virtual for Sections linked to the tutorial

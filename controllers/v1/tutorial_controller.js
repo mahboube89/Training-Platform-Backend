@@ -1,0 +1,102 @@
+/**
+ * @Copyright 2024 mae-mahboube89
+ * @license MIT
+*/
+
+"use strict";
+
+
+// ----- Node modules -----
+const fs = require('fs');
+const path = require('path');
+
+// ----- Custom modules -----
+const tutorialModel = require('./../../models/tutorial_model');
+const categoryModel = require('./../../models/category_model');
+const userModel = require('./../../models/user_model');
+const tutorialValidator = require("./../../validators/tutorial_validator");
+
+exports.getAllTutorials = async (req, res) => {
+    
+};
+
+
+exports.createTutorial = async (req, res) => {
+    try {
+
+
+        // Validate the incoming request body using the tutorialValidator
+        const { error } = tutorialValidator.validate(req.body);  // Joi validation returns an error object
+        if (error) {
+            // Delete uploaded file if validation fails
+            if (req.file) {
+                fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "covers", req.file.filename));
+            }
+            return res.status(422).json({ errors: error.details.map(err => err.message) });
+        }
+
+        // Ensure cover file is present before accessing `req.file.filename`
+        if (!req.file) {
+            return res.status(400).json({ message: "Cover image is required." });
+        }
+
+
+        // Destructure required fields from request body
+        const {title, description, instructorId, categoryId, href, price, isFree, status, onSale} = req.body;
+        
+        // Check for duplicate title in the same category
+        const duplicateTutorial = await tutorialModel.findOne({ title, categoryId });
+        if (duplicateTutorial) {
+            // Delete uploaded file if duplicate is found
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "covers", req.file.filename));
+            return res.status(409).json({ message: "A tutorial with this title already exists in the selected category." });
+        }
+
+        // Validate categoryId
+        const category = await categoryModel.findById(categoryId);
+        if (!category) {
+            // Delete uploaded file if duplicate is found
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "covers", req.file.filename));
+            return res.status(404).json({ message: "Invalid category ID: category not found." });
+        }
+
+        // Validate instructor (assuming instructors are users with a specific role)
+        const instructorExists = await userModel.findById(instructorId);
+        if (!instructorExists) {
+            // Delete uploaded file if duplicate is found
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "covers", req.file.filename));
+            return res.status(404).json({ message: "Invalid instructor ID: instructor not found." });
+        }
+        
+        const tutorial = await tutorialModel.create({
+            title,
+            description,
+            instructorId,
+            categoryId,
+            href,
+            price,
+            isFree,
+            status,
+            onSale,
+            cover: req.file.filename,
+            createdBy: req.user._id // Automatically set createdBy from req.userId
+        });
+
+    
+        const populatedTutorial = await tutorial.populate([
+            { path: 'categoryId', select: '_id title' },        // Fetch title of the Category
+            { path: 'instructorId', select: '_id name' }        // Fetch name of the Instructor
+        ]);
+
+        return res.status(201).json( {message: "Tutorial created successfully.", tutorial});
+       
+
+    } catch (error) {
+        // Delete uploaded file if an error occurs during tutorial creation
+        if (req.file) {
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "covers", req.file.filename));
+        }
+        console.error("Error during tutorial creation: ", error);
+        return res.status(500).json({message: "Internal server error."});
+    }
+};

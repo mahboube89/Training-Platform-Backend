@@ -77,7 +77,7 @@ exports.register = async (req, res) => {
 
     } catch (error) {
         console.error("Error during registration: ", error);
-        return res.status(500).json({message: "Internal server error."})       
+        return res.status(500).json({message: "Internal server error."});      
     }
 
 };
@@ -86,6 +86,7 @@ exports.register = async (req, res) => {
 exports.login = async(req, res) => {
 
     try {
+        console.log(req.body);
         
         const {identifier, password} = req.body;
 
