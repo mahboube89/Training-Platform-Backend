@@ -196,8 +196,6 @@ exports.addSectionToTutorial = async(req,res) => {
 exports.getTutorialSectionInfo = async(req,res) => {
 
     try {
-
-        console.log(req.params);
         
         // Validate the ID
         if(!isValidObjectId(req.params.sectionId)) {
@@ -223,6 +221,40 @@ exports.getTutorialSectionInfo = async(req,res) => {
 
     } catch (error) {
         console.error("Error during get section info: ", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+
+};
+
+
+exports.removeOneSection = async (req, res)=> {
+
+    try {
+
+        // Validate the ID
+        if(!isValidObjectId(req.params.sectionId)) {
+            return res.status(422).json({ message: "Invalid section ID."});
+        } 
+
+        // Find and delete the section
+        const deletedSection = await sectionModel.findOneAndDelete({ _id: req.params.sectionId});
+
+        if(!deletedSection) {
+            return res.status(404).json({ message: "Section not found." });
+        }
+
+        // Delete the associated video file if it exists
+        if (deletedSection.video) {
+            const videoPath = path.join(__dirname, "..", "..", "public", "tutorials", "videos", deletedSection.video);
+            fs.unlink(videoPath, (err) => {
+                if (err) console.error("Failed to delete video file:", err.message);
+            });
+        }
+
+        return res.status(200).json({message: "Section deleted successfully.", deletedSection});
+        
+    } catch (error) {
+        console.error("Error during removal section: ", error.message);
         return res.status(500).json({message: "Internal server error."});
     }
 

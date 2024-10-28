@@ -45,8 +45,11 @@ router.route("/:tutorialId/sections")
     checkRoles("ADMIN", "INSTRUCTOR"),
     tutorialController.addSectionToTutorial);
 
-    
+
 router.route("/:href/sections/:sectionId").get(tutorialController.getTutorialSectionInfo);
 
+
+router.route("/sections/:sectionId")
+.delete(verifyToken, checkAdmin, tutorialController.removeOneSection);
 
 module.exports = router;
