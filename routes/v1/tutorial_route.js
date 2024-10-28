@@ -38,12 +38,15 @@ router.route("/")
 router.route("/sections")
 .get(verifyToken, checkAdmin, tutorialController.getAllSections);
 
-router.route("/:id/sections")
+router.route("/:tutorialId/sections")
 .post(
     uploadVideo.single("video"), 
     verifyToken,
     checkRoles("ADMIN", "INSTRUCTOR"),
     tutorialController.addSectionToTutorial);
+
+    
+router.route("/:href/sections/:sectionId").get(tutorialController.getTutorialSectionInfo);
 
 
 module.exports = router;

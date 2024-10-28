@@ -131,7 +131,7 @@ exports.addSectionToTutorial = async(req,res) => {
     try {
 
         // Validate the tutorial ID
-        if(!isValidObjectId(req.params.id)) {
+        if(!isValidObjectId(req.params.tutorialId)) {
             return res.status(422).json({ message: "Invalid tutorial ID."});
         } 
         
@@ -160,7 +160,7 @@ exports.addSectionToTutorial = async(req,res) => {
 
 
         // Check for existing section with the same title and tutorialId
-        const duplicateSection = await sectionModel.findOne({ title, tutorialId: req.params.id });
+        const duplicateSection = await sectionModel.findOne({ title, tutorialId: req.params.tutorialId });
         if (duplicateSection) {
             // Delete the uploaded file since it's a duplicate
             fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "videos", req.file.filename));
@@ -173,7 +173,7 @@ exports.addSectionToTutorial = async(req,res) => {
             video: req.file.filename,
             duration,
             isFree,
-            tutorialId: req.params.id
+            tutorialId: req.params.tutorialId
         });
 
         if(section) {
@@ -190,4 +190,40 @@ exports.addSectionToTutorial = async(req,res) => {
         console.error("Error during section addition: ", error);
         return res.status(500).json({message: "Internal server error."});
     }
+};
+
+
+exports.getTutorialSectionInfo = async(req,res) => {
+
+    try {
+
+        console.log(req.params);
+        
+        // Validate the ID
+        if(!isValidObjectId(req.params.sectionId)) {
+            return res.status(422).json({ message: "Invalid tutorial ID."});
+        } 
+        
+        // Fetch tutorial by href
+        const tutorial = await tutorialModel.findOne({ href: req.params.href}).lean();
+        if (!tutorial) {
+            return res.status(404).json({ message: "Tutorial not found." });
+        }
+
+        // Fetch specific section
+        const selectedSection = await sectionModel.findById(req.params.sectionId);
+        if (!selectedSection) {
+            return res.status(404).json({ message: "Section not found." });
+        }
+
+        // Fetch all sections for the tutorial
+        const tutorialSections = await sectionModel.find({tutorialId: tutorial._id});
+
+        return res.status(200).json({message: "Section information retrieved successfully.", selectedSection, tutorialSections});
+
+    } catch (error) {
+        console.error("Error during get section info: ", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+
 };
