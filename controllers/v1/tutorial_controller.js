@@ -21,6 +21,26 @@ const sectionValidator = require("./../../validators/section_validator");
 
 exports.getAllTutorials = async (req, res) => {
 
+    try {
+        const tutorials = await tutorialModel.find({})
+        .populate([
+            {path:"instructorId" , select: "_id username"},
+            {path:"categoryId" , select: "_id title"}
+        ])
+        . lean();
+
+        if(tutorials.length === 0) {
+            return res.status(200).json({message: "No Tutorial to display."});
+        }
+
+        // Return the list of users
+        return res.status(200).json({ message: "Users retrieved successfully", tutorials });
+
+    } catch (error) {
+        console.error("Error during get all tutorials: ", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+
 };
 
 exports.getAllSections = async (req, res)=> {
