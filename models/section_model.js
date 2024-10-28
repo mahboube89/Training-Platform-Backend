@@ -26,7 +26,7 @@ const SectionSchema = new mongoose.Schema({
         required: true,
         min: 1
     },
-    free: {
+    isFree: {
         type: Boolean,
         required: true,
         default: false

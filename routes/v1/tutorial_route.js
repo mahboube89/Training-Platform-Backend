@@ -9,8 +9,8 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-// const upload = require("./../../utils/multerUploader_util");
-const multerStorage = require("./../../utils/multerUploader_util");
+const { uploadCover, uploadVideo } = require("./../../utils/multerUploader_util");
+// const multerStorage = require("./../../utils/multerUploader_util");
 
 // ----- Custom modules -----
 const tutorialController = require('../../controllers/v1/tutorial_controller');
@@ -25,7 +25,7 @@ const checkRoles = require('../../middlewares/checkRole_middleware');
 
 router.route("/create")
     .post(
-        multer({storage: multerStorage, limits: {fileSize: 2 * 1024 * 1024}}).single("cover"), 
+        uploadCover.single("cover"), 
         verifyToken,
         checkRoles("ADMIN", "INSTRUCTOR"),
         tutorialController.createTutorial
@@ -33,6 +33,14 @@ router.route("/create")
 
 router.route("/")
 .get(verifyToken, checkAdmin, tutorialController.getAllTutorials);
+
+
+router.route("/:id/sections")
+.post(
+    uploadVideo.single("video"), 
+    verifyToken,
+    checkRoles("ADMIN", "INSTRUCTOR"),
+    tutorialController.addSectionToTutorial);
 
 
 module.exports = router;

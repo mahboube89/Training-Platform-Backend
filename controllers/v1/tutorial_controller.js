@@ -9,12 +9,15 @@
 // ----- Node modules -----
 const fs = require('fs');
 const path = require('path');
+const {isValidObjectId} = require ("mongoose");
 
 // ----- Custom modules -----
 const tutorialModel = require('./../../models/tutorial_model');
 const categoryModel = require('./../../models/category_model');
 const userModel = require('./../../models/user_model');
+const sectionModel = require('./../../models/section_model');
 const tutorialValidator = require("./../../validators/tutorial_validator");
+const sectionValidator = require("./../../validators/section_validator");
 
 exports.getAllTutorials = async (req, res) => {
     
@@ -97,6 +100,73 @@ exports.createTutorial = async (req, res) => {
             fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "covers", req.file.filename));
         }
         console.error("Error during tutorial creation: ", error);
+        return res.status(500).json({message: "Internal server error."});
+    }
+};
+
+
+exports.addSectionToTutorial = async(req,res) => {
+
+    try {
+
+        // Validate the tutorial ID
+        if(!isValidObjectId(req.params.id)) {
+            return res.status(422).json({ message: "Invalid tutorial ID."});
+        } 
+        
+        // Check if the tutorial exists
+        const tutorial = await tutorialModel.findById(req.params.id);
+        if (!tutorial) {
+            return res.status(404).json({ message: "Tutorial not found." });
+        }
+
+        // Validate the incoming request body using the sectionValidator
+        const { error } = sectionValidator.validate(req.body);  // Joi validation returns an error object
+        if (error) {
+            // Delete uploaded file if validation fails
+            if (req.file) {
+                fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "videos", req.file.filename));
+            }
+            return res.status(422).json({ errors: error.details.map(err => err.message) });
+        }
+
+        // Ensure cover file is present before accessing `req.file.filename`
+        if (!req.file) {
+            return res.status(400).json({ message: "Video is required." });
+        }
+
+        const {title, duration, isFree} = req.body;
+
+
+        // Check for existing section with the same title and tutorialId
+        const duplicateSection = await sectionModel.findOne({ title, tutorialId: req.params.id });
+        if (duplicateSection) {
+            // Delete the uploaded file since it's a duplicate
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "videos", req.file.filename));
+            return res.status(409).json({ message: "A section with this title already exists for this tutorial." });
+        }
+
+        // Create section
+        const section = await sectionModel.create({
+            title,
+            video: req.file.filename,
+            duration,
+            isFree,
+            tutorialId: req.params.id
+        });
+
+        if(section) {
+            return res.status(200).json({message: "Section created successfully."});
+        }
+
+    } catch (error) {
+
+        // Delete file in case of any other errors
+        if(req.file) {
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "tutorials", "videos", req.file.filename));
+        }
+
+        console.error("Error during section addition: ", error);
         return res.status(500).json({message: "Internal server error."});
     }
 };
