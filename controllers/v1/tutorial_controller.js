@@ -337,3 +337,31 @@ exports.enrollInTutorial = async (req, res) => {
         return res.status(500).json({message: "Internal server error."});
     }
 };
+
+
+
+exports.getTutorialByCategory = async (req, res) => {
+    try {
+
+        const {categoryHref} = req.params;
+
+        // Check if the category exists
+        const category = await categoryModel.findOne( { href: categoryHref});
+        if(!category) {
+            return res.status(404).json({ message: "Category not found." });
+        }
+
+        // Fetch tutorials
+        const tutorials = await tutorialModel.find({ categoryId:category._id })
+        if(tutorials.length === 0) {
+            return res.status(200).json({message: "No tutorials found." })
+        }
+
+
+        return res.status(200).json({message: `Retrieved Tutorials for Category ${category.title}: ` , tutorials});
+       
+    } catch (error) {
+        console.error("Error retrieving tutorials for category:", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+};
