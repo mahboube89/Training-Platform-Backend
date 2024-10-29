@@ -16,8 +16,11 @@ const tutorialModel = require('./../../models/tutorial_model');
 const categoryModel = require('./../../models/category_model');
 const userModel = require('./../../models/user_model');
 const sectionModel = require('./../../models/section_model');
+const userTutorialModel = require('./../../models/userTutorialSchema_model');
+
 const tutorialValidator = require("./../../validators/tutorial_validator");
 const sectionValidator = require("./../../validators/section_validator");
+
 
 exports.getAllTutorials = async (req, res) => {
 
@@ -278,4 +281,59 @@ exports.removeOneSection = async (req, res)=> {
         return res.status(500).json({message: "Internal server error."});
     }
 
+};
+
+
+exports.enrollInTutorial = async (req, res) => {
+    
+    try {
+
+        // Validate the tutorial ID
+        if(!isValidObjectId(req.params.tutorialId)) {
+            return res.status(422).json({ message: "Invalid tutorial ID."});
+        }
+
+        // Check if the tutorial exists
+        const tutorial = await tutorialModel.findById(req.params.tutorialId);
+        if (!tutorial) {
+            return res.status(404).json({ message: "Tutorial not found." });
+        }
+
+
+        // Check if the user exists
+        const user = await userModel.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // Check if the user is banned
+        if (user.status === "BANNED") {
+            return res.status(403).json({ message: "Access denied. Banned users cannot enroll in tutorials." });
+        }
+
+        // Check if the user is already enrolled in this tutorial
+        const existingEnrollment = await userTutorialModel.findOne({ userId: req.userId, tutorialId: req.params.tutorialId}).lean();
+        if (existingEnrollment) {
+            return res.status(409).json({ message: "User is already enrolled in this tutorial." });
+        }
+
+        // Determine price - set to 0 if tutorial is free
+        const price = tutorial.isFree ? 0 : tutorial.price;
+
+        // Enroll the user in the tutorial
+        const enrollment = await userTutorialModel.create({
+            userId : req.userId,
+            tutorialId: req.params.tutorialId,
+            price,
+            progress: 0
+        });
+
+        if(enrollment){
+            return res.status(201).json({message: "Enrollment successful", enrollment});
+        }
+
+    } catch (error) {
+        console.error("Error during enrollment: ", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
 };

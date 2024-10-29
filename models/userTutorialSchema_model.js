@@ -7,8 +7,7 @@
 
 // ----- Node modules -----
 const mongoose = require('mongoose');
-const { type } = require('../validators/tutorial_validator');
-const { required } = require('joi');
+
 
 const userTutorialSchema = mongoose.Schema({
 
@@ -38,4 +37,4 @@ const userTutorialSchema = mongoose.Schema({
 // Ensure unique entries for each user-tutorial pair
 userTutorialSchema.index({ userId: 1, tutorialId: 1 }, { unique: true });
 
-model.exports = mongoose.model("UserTutorial", userTutorialSchema)
+module.exports = mongoose.model("UserTutorial", userTutorialSchema)

@@ -43,7 +43,8 @@ router.route("/:tutorialId/sections")
     uploadVideo.single("video"), 
     verifyToken,
     checkRoles("ADMIN", "INSTRUCTOR"),
-    tutorialController.addSectionToTutorial);
+    tutorialController.addSectionToTutorial
+);
 
 
 router.route("/:href/sections/:sectionId").get(tutorialController.getTutorialSectionInfo);
@@ -51,5 +52,8 @@ router.route("/:href/sections/:sectionId").get(tutorialController.getTutorialSec
 
 router.route("/sections/:sectionId")
 .delete(verifyToken, checkAdmin, tutorialController.removeOneSection);
+
+
+router.route("/:tutorialId/enroll").post(verifyToken, tutorialController.enrollInTutorial);
 
 module.exports = router;
