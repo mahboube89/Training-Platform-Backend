@@ -19,14 +19,18 @@ const commentValidator = require("./../../validators/comment_validator");
 exports.addComment = async (req, res) => {
     try {
 
-        console.log(req.body);
-        
         const {error} = commentValidator.validate(req.body);
         if(error){
             return res.status(422).json({ errors: error.details.map(err => err.message) });
         }
 
         const { body, tutorialHref, review, parentCommentId} = req.body;
+
+        // Verify if the user is banned
+        const user = await userModel.findById(req.userId);
+        if (!user || user.status === "BANNED") {
+            return res.status(403).json({ message: "Access denied. User is banned." });
+        }
 
         // Find the tutorial by href
         const selectedTutorial = await tutorialModel.findOne( {href: tutorialHref}).lean();       
