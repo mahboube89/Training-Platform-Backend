@@ -13,7 +13,9 @@ const CommentSchema = new mongoose.Schema({
     body: {
         type: String,
         required: true,
-        trim:true
+        trim:true,
+        mainLength: 5,
+        maxLength:100
     },
     tutorialId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -21,7 +23,7 @@ const CommentSchema = new mongoose.Schema({
         required: true,
         index: true
     },
-    writer: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
@@ -34,7 +36,7 @@ const CommentSchema = new mongoose.Schema({
         type: Number,
         min: 1,
         max: 5
-    },
+    },  
     parentCommentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Comment",
