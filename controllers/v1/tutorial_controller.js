@@ -435,7 +435,37 @@ exports.deleteTutorialById = async (req, res) => {
         return res.status(200).json({message: "Tutorial deleted successful : ", deletedTutorial});
         
     } catch (error) {
-        console.error("Error retrieving tutorial details:", error.message);
+        console.error("Error deleting tutorial:", error.message);
         return res.status(500).json({message: "Internal server error."});
+    }
+};
+
+
+exports.getRelatedTutorials = async (req, res) => {
+    try {
+        
+        const {tutorialId} = req.params;
+
+        // Check if tutorialId is a valid ObjectId
+        if (!isValidObjectId(tutorialId)) {
+            return res.status(422).json({ message: "Invalid tutorial ID." });
+        }
+
+
+        const mainTutorial = await tutorialModel.findById(tutorialId).lean();
+        if(!mainTutorial){
+            return res.status(422).json({ message: "Tutorial not found." });
+        }
+
+        const relatedTutorials = await tutorialModel.find({
+            categoryId: mainTutorial.categoryId,
+            _id: {$ne: mainTutorial._id}
+        }).select( "title href cover categoryId").populate({ path: "categoryId", select: "title -_id" }).limit(5).lean();
+
+        return res.status(200).json({ message: "Related tutorials retrieved successfully", relatedTutorials });
+
+    } catch (error) {
+        console.error("Error retrieving related tutorials:", error.message);
+        return res.status(500).json({ message: "Internal server error." });
     }
 };
