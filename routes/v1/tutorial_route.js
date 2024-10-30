@@ -59,4 +59,8 @@ router.route("/:tutorialId/enroll").post(verifyToken, tutorialController.enrollI
 
 router.route("/category/:categoryHref").get(tutorialController.getTutorialByCategory)
 
+
+router.route("/details/:tutorialHref").get(tutorialController.getOneTutorialDetails);
+
+
 module.exports = router;

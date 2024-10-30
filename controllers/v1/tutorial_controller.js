@@ -17,6 +17,7 @@ const categoryModel = require('./../../models/category_model');
 const userModel = require('./../../models/user_model');
 const sectionModel = require('./../../models/section_model');
 const userTutorialModel = require('./../../models/userTutorialSchema_model');
+const commentModel = require('./../../models/comment_model');
 
 const tutorialValidator = require("./../../validators/tutorial_validator");
 const sectionValidator = require("./../../validators/section_validator");
@@ -362,6 +363,43 @@ exports.getTutorialByCategory = async (req, res) => {
        
     } catch (error) {
         console.error("Error retrieving tutorials for category:", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+};
+
+
+exports.getOneTutorialDetails = async (req, res) => {
+    try {
+
+        // Destructure tutorialHref from req.params
+        const {tutorialHref} = req.params;
+        
+        // Find the tutorial by href and populate category and instructor details
+        const tutorial = await tutorialModel.findOne( {href: tutorialHref})
+        .populate([ { path: "categoryId" , select: "title -_id"}, { path: "instructorId", select: "username -_id " }])
+        .lean();
+
+        // If no tutorial is found, return a 404 error response
+        if(!tutorial){
+            return res.status(404).json({ message: "Tutorial not found." });
+        }
+
+        // Run three independent queries concurrently using Promise.all
+        const [tutorialSections , tutorialComments, enrolledCount] = await Promise.all([
+            sectionModel.find({tutorialId : tutorial._id}), // Fetch all sections for the tutorial
+            commentModel.find({tutorialId : tutorial._id , isAccepted: true }).populate("userId", "-password"), // Fetch all accepted comments for the tutorial, populated with user details except password
+            userTutorialModel.countDocuments({ tutorialId: tutorial._id }) // Count the total number of users enrolled in the tutorial
+        ]);
+
+        return res.status(200).json({message: `Retrieved details for Tutorial ${tutorial.title}: ` ,
+            tutorial,
+            tutorialSections,
+            tutorialComments,
+            enrolledCount
+        });
+        
+    } catch (error) {
+        console.error("Error retrieving tutorial details:", error.message);
         return res.status(500).json({message: "Internal server error."});
     }
 };
