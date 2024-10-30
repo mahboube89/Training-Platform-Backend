@@ -415,3 +415,27 @@ exports.getOneTutorialDetails = async (req, res) => {
         return res.status(500).json({message: "Internal server error."});
     }
 };
+
+exports.deleteTutorialById = async (req, res) => {
+    
+    try {
+        // Validate the tutorial ID
+        if(!isValidObjectId(req.params.tutorialId)) {
+            return res.status(422).json({ message: "Invalid tutorial ID."});
+        }
+
+        // Attempt to delete the tutorial with the given ID from the database
+        const deletedTutorial = await tutorialModel.findOneAndDelete({ _id: req.params.tutorialId });
+        
+        // If no tutorial is found to delete
+        if(!deletedTutorial) {
+            return res.status(404).json({message: "No tutorials found." });
+        }
+
+        return res.status(200).json({message: "Tutorial deleted successful : ", deletedTutorial});
+        
+    } catch (error) {
+        console.error("Error retrieving tutorial details:", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+};

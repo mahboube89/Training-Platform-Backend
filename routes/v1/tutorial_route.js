@@ -63,4 +63,6 @@ router.route("/category/:categoryHref").get(tutorialController.getTutorialByCate
 router.route("/details/:tutorialHref").get(verifyToken, tutorialController.getOneTutorialDetails);
 
 
+router.route("/:tutorialId").delete(verifyToken, checkAdmin, tutorialController.deleteTutorialById);
+
 module.exports = router;
