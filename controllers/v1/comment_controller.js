@@ -102,7 +102,15 @@ exports.deleteComment = async (req, res) => {
 exports.acceptComment = async (req, res) => {
     try {
 
-        const comment = await commentModel.findById(req.params.commentId);
+        const {commentId} = req.params;
+
+        // Check if commentId is a valid ObjectId
+        if (!isValidObjectId(commentId)) {
+            return res.status(422).json({ message: "Invalid comment ID." });
+        }
+
+        // Find the Comment by Id
+        const comment = await commentModel.findById(commentId);
 
         if (!comment) {
             return res.status(404).json({ message: "Comment not found." });
@@ -129,18 +137,26 @@ exports.acceptComment = async (req, res) => {
 exports.rejectComment = async (req, res) => {
     try {
 
-        const comment = await commentModel.findById(req.params.commentId);
+        const {commentId} = req.params;
+
+        // Check if commentId is a valid ObjectId
+        if (!isValidObjectId(commentId)) {
+            return res.status(422).json({ message: "Invalid comment ID." });
+        }
+
+        // Find the Comment by Id
+        const comment = await commentModel.findById(commentId);
 
         if (!comment) {
             return res.status(404).json({ message: "Comment not found." });
         }
 
-        // Check if the comment is already accepted
+        // Check if the comment is already rejected
         if (!comment.isAccepted) {
             return res.status(409).json({ message: "Comment is already rejected." });
         }
 
-        // Update status to accepted
+        // Update status to reject
         comment.isAccepted = false;
         await comment.save();
 
