@@ -60,7 +60,7 @@ router.route("/:tutorialId/enroll").post(verifyToken, tutorialController.enrollI
 router.route("/category/:categoryHref").get(tutorialController.getTutorialByCategory)
 
 
-router.route("/details/:tutorialHref").get(tutorialController.getOneTutorialDetails);
+router.route("/details/:tutorialHref").get(verifyToken, tutorialController.getOneTutorialDetails);
 
 
 module.exports = router;

@@ -384,6 +384,18 @@ exports.getOneTutorialDetails = async (req, res) => {
             return res.status(404).json({ message: "Tutorial not found." });
         }
 
+
+        const isEnrolled = await userTutorialModel.exists({
+            userId : req.userId,
+            tutorialId: tutorial._id
+        });
+
+
+        if(!tutorial.isFree && !isEnrolled) {
+            return res.status(403).json({ message: "Access denied. Please enroll to view this tutorial." });
+        }
+
+
         // Run three independent queries concurrently using Promise.all
         const [tutorialSections , tutorialComments, enrolledCount] = await Promise.all([
             sectionModel.find({tutorialId : tutorial._id}), // Fetch all sections for the tutorial
