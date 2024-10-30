@@ -6,7 +6,7 @@
 "use strict";
 
 // ----- Node modules -----
-
+const {isValidObjectId} = require ("mongoose");
 
 // ----- Custom modules -----
 const commentModel = require("./../../models/comment_model");
@@ -65,3 +65,35 @@ exports.addComment = async (req, res) => {
         return res.status(500).json({message: "Internal server error."}); 
     }
 };
+
+
+
+exports.deleteComment = async (req, res) => {
+    
+    try {
+
+        const {commentId} = req.params;
+
+        // Check if tutorialId is a valid ObjectId
+        if (!isValidObjectId(commentId)) {
+            return res.status(422).json({ message: "Invalid comment ID." });
+        }
+
+
+        const deletedComment = await commentModel.findOneAndDelete({ _id: commentId});
+
+
+        if (!deletedComment) {
+            return res.status(404).json({ message: "Comment not found." });
+        }
+
+        return res.status(200).json({ message: "Comment and its replies deleted successfully." });
+
+
+        
+    } catch (error) {
+        console.error("Error deleting comment:", error.message);
+        return res.status(500).json({message: "Internal server error."});
+    }
+    
+}
