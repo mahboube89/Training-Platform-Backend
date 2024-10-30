@@ -74,7 +74,7 @@ exports.deleteComment = async (req, res) => {
 
         const {commentId} = req.params;
 
-        // Check if tutorialId is a valid ObjectId
+        // Check if commentId is a valid ObjectId
         if (!isValidObjectId(commentId)) {
             return res.status(422).json({ message: "Invalid comment ID." });
         }
@@ -96,4 +96,58 @@ exports.deleteComment = async (req, res) => {
         return res.status(500).json({message: "Internal server error."});
     }
     
-}
+};
+
+
+exports.acceptComment = async (req, res) => {
+    try {
+
+        const comment = await commentModel.findById(req.params.commentId);
+
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found." });
+        }
+
+        // Check if the comment is already accepted
+        if (comment.isAccepted) {
+            return res.status(409).json({ message: "Comment is already accepted." });
+        }
+
+        // Update status to accepted
+        comment.isAccepted = true;
+        await comment.save();
+
+        return res.status(200).json({ message: "Comment accepted successfully.", comment });
+        
+    } catch (error) {
+        console.error("Error accepting comment:", error.message);
+        return res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+
+exports.rejectComment = async (req, res) => {
+    try {
+
+        const comment = await commentModel.findById(req.params.commentId);
+
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found." });
+        }
+
+        // Check if the comment is already accepted
+        if (!comment.isAccepted) {
+            return res.status(409).json({ message: "Comment is already rejected." });
+        }
+
+        // Update status to accepted
+        comment.isAccepted = false;
+        await comment.save();
+
+        return res.status(200).json({ message: "Comment rejected successfully.", comment });
+        
+    } catch (error) {
+        console.error("Error rejecting comment:", error.message);
+        return res.status(500).json({ message: "Internal server error." });
+    }
+};

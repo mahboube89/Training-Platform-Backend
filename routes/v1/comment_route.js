@@ -25,4 +25,12 @@ router.route("/").post(verifyToken, commentController.addComment);
 
 router.route("/:commentId").delete(verifyToken, checkAdmin, commentController.deleteComment );
 
+
+router.route("/:commentId/accept").patch(verifyToken, checkAdmin, commentController.acceptComment );
+
+
+router.route("/:commentId/reject").patch(verifyToken, checkAdmin, commentController.rejectComment );
+
+
+
 module.exports = router;
