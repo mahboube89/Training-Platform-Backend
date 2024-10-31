@@ -19,6 +19,7 @@ const tutorialRouter = require('./routes/v1/tutorial_route');
 const commentRouter = require('./routes/v1/comment_route');
 const contactUsRouter = require('./routes/v1/contactUs_route');
 const newsletterRouter = require('./routes/v1/newsletter_route');
+const searchRouter = require('./routes/v1/search_route');
 
 
 // ----- Initial express -----
@@ -62,6 +63,9 @@ app.use("/v1/contact", contactUsRouter);
 
 // Newsletter routes under /v1/newsletter
 app.use("/v1/newsletter", newsletterRouter);
+
+// Search routes under /v1/search
+app.use("/v1/search", searchRouter);
 
 
 
