@@ -13,6 +13,7 @@ const commentModel = require("./../../models/comment_model");
 const userModel = require("./../../models/user_model");
 const tutorialModel = require("./../../models/tutorial_model");
 const commentValidator = require("./../../validators/comment_validator");
+const { promises } = require("nodemailer/lib/xoauth2");
 
 
 
@@ -165,5 +166,47 @@ exports.rejectComment = async (req, res) => {
     } catch (error) {
         console.error("Error rejecting comment:", error.message);
         return res.status(500).json({ message: "Internal server error." });
+    }
+};
+
+
+exports.getAllComments = async (req, res) => {
+    try {
+
+        // Fetch all main comments (no parentCommentId) and replies with parentCommentId populated
+        const [ mainComments , replies] = await Promise.all([
+            commentModel.find({parentCommentId: null}).populate("tutorialId").populate([{ path: "userId", select: "-_id" }]).lean(),
+            commentModel.find({parentCommentId: { $ne: null}}).populate("tutorialId").populate([{ path: "userId", select: "-_id" }]).lean(),
+
+        ]);
+
+        const repliesMap = {}; // Create a map to store replies associated with each main comment's ID
+
+        // Iterate through each reply and organize them by their parent comment's ID
+        replies.forEach( reply => {
+            const parentId = reply.parentCommentId.toString(); // Convert the parentCommentId to a string to use as a key in repliesMap
+            
+            // Initialize an array in repliesMap for this parentId if it doesn't exist
+            if(!repliesMap[parentId]){              
+                repliesMap[parentId] = [];
+            }
+
+            // Add the reply to the array of replies for this parentId
+            repliesMap[parentId].push(reply);
+        });
+
+        // Combine main comments with their replies from repliesMap
+        const commentsWithReplies = mainComments.map(mainComment => ({
+            ...mainComment,
+            // Attach replies from repliesMap, or an empty array if no replies are found for this main comment
+            replies: repliesMap[mainComment._id.toString()] || []
+        }));
+
+
+        return res.status(200).json({ message: "All comment retrieved successfully",commentsWithReplies});
+        
+    } catch (error) {
+        console.error("Error during retrieve all comments: ", error);
+        return res.status(500).json({message: "Internal server error."});
     }
 };

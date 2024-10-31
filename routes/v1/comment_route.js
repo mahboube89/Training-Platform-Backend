@@ -20,7 +20,8 @@ const commentController = require('../../controllers/v1/comment_controller');
 
 // ----- Routes -----
 
-router.route("/").post(verifyToken, commentController.addComment);
+router.route("/").post(verifyToken, commentController.addComment)
+.get(verifyToken,checkAdmin, commentController.getAllComments);
 
 
 router.route("/:commentId").delete(verifyToken, checkAdmin, commentController.deleteComment );
