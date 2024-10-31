@@ -20,6 +20,7 @@ const commentRouter = require('./routes/v1/comment_route');
 const contactUsRouter = require('./routes/v1/contactUs_route');
 const newsletterRouter = require('./routes/v1/newsletter_route');
 const searchRouter = require('./routes/v1/search_route');
+const notificationRouter = require('./routes/v1/notification_route');
 
 
 // ----- Initial express -----
@@ -67,6 +68,8 @@ app.use("/v1/newsletter", newsletterRouter);
 // Search routes under /v1/search
 app.use("/v1/search", searchRouter);
 
+// Notification routes under /v1/notification
+app.use("/v1/notification", notificationRouter);
 
 
 module.exports = app;
