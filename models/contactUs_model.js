@@ -22,9 +22,9 @@ const contactUsSchema = new mongoose.Schema({
     },
     phone:{
         type: String,
-        match: [/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"]
+        match: [/^(0|\+?[1-9]{1,3})\d{4,14}$/, "Invalid phone number format"]
     },
-    isAnswered: {
+    hasResponse: {
         type: Boolean,
         default: false,
         index: true

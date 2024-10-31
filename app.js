@@ -17,6 +17,7 @@ const userRouter = require('./routes/v1/user_route');
 const categoryRouter = require('./routes/v1/category_route');
 const tutorialRouter = require('./routes/v1/tutorial_route');
 const commentRouter = require('./routes/v1/comment_route');
+const contactUsRouter = require('./routes/v1/contactUs_route');
 
 
 // ----- Initial express -----
@@ -54,6 +55,10 @@ app.use("/v1/tutorial", tutorialRouter);
 
 // Tutorial routes under /v1/comments
 app.use("/v1/comments", commentRouter);
+
+
+app.use("/v1/contact", contactUsRouter);
+
 
 
 module.exports = app;

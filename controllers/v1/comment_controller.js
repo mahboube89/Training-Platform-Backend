@@ -13,7 +13,6 @@ const commentModel = require("./../../models/comment_model");
 const userModel = require("./../../models/user_model");
 const tutorialModel = require("./../../models/tutorial_model");
 const commentValidator = require("./../../validators/comment_validator");
-const { promises } = require("nodemailer/lib/xoauth2");
 
 
 
