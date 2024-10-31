@@ -12,30 +12,47 @@ const {isValidObjectId} = require ("mongoose");
 const commentModel = require("./../../models/comment_model");
 const userModel = require("./../../models/user_model");
 const tutorialModel = require("./../../models/tutorial_model");
+const blogModel = require("./../../models/blog_model");
 const commentValidator = require("./../../validators/comment_validator");
 
 
 
-exports.addComment = async (req, res) => {
+exports.addCommentToTutorial = async (req, res) => {
     try {
 
+        // Extract content type and ID from the request parameters
+        const {contentId } = req.params;
+
+        const contentType = req.path.includes("/tutorial/") ? "tutorial" : "blog";
+
+
+        // Initialize variable to hold content (either tutorial or blog)
+        let content;
+        if (contentType.toUpperCase() === "TUTORIAL") {
+            content = await tutorialModel.findById(contentId).lean(); // Use contentId directly
+        } else if (contentType.toUpperCase() === "BLOG") {
+            content = await blogModel.findById(contentId).lean(); // Use contentId directly
+        }     
+
+        // If the content is not found, return a 404 error
+        if (!content) {
+            return res.status(404).json({ message: `${contentType} not found.` });
+        }
+
+        // Validate the comment body using Joi validator
         const {error} = commentValidator.validate(req.body);
         if(error){
             return res.status(422).json({ errors: error.details.map(err => err.message) });
         }
 
-        const { body, tutorialHref, review, parentCommentId} = req.body;
+        // Destructure comment fields from the request body
+        const { body, review, parentCommentId} = req.body;
+        
 
         // Verify if the user is banned
         const user = await userModel.findById(req.userId);
         if (!user || user.status === "BANNED") {
             return res.status(403).json({ message: "Access denied. User is banned." });
-        }
-
-        // Find the tutorial by href
-        const selectedTutorial = await tutorialModel.findOne( {href: tutorialHref}).lean();       
-        if (!selectedTutorial) {
-            return res.status(404).json({ message: "Tutorial not found." });
         }
 
         // Check if parentCommentId is provided and valid (for replies)
@@ -49,9 +66,10 @@ exports.addComment = async (req, res) => {
         // Create the new comment
         const newComment = await commentModel.create({
             body,
-            tutorialId: selectedTutorial._id,
-            userId: req.userId, // Set from the authenticated user (verifyToken)
-            isAccepted: false,  // Default status for new comments
+            referenceType: contentType.toUpperCase(), // Set reference type as either 'TUTORIAL' or 'BLOG'
+            referenceId:content._id,    // Reference the ID of the related content
+            userId: req.userId,         // Set from the authenticated user (verifyToken)
+            isAccepted: false,          // Default status for new comments
             review,
             parentCommentId: parentCommentId || null // Set parentCommentId if it's a reply
         });
@@ -61,7 +79,7 @@ exports.addComment = async (req, res) => {
         }
         
     } catch (error) {
-        console.error("Error during registration: ", error);
+        console.error("Error during add comment: ", error);
         return res.status(500).json({message: "Internal server error."}); 
     }
 };
@@ -174,8 +192,8 @@ exports.getAllComments = async (req, res) => {
 
         // Fetch all main comments (no parentCommentId) and replies with parentCommentId populated
         const [ mainComments , replies] = await Promise.all([
-            commentModel.find({parentCommentId: null}).populate("tutorialId").populate([{ path: "userId", select: "-_id" }]).lean(),
-            commentModel.find({parentCommentId: { $ne: null}}).populate("tutorialId").populate([{ path: "userId", select: "-_id" }]).lean(),
+            commentModel.find({parentCommentId: null}).populate("referenceId").populate([{ path: "userId", select: "-_id -password" }]).lean(),
+            commentModel.find({parentCommentId: { $ne: null}}).populate("referenceId").populate([{ path: "userId", select: "-_id -password" }]).lean(),
 
         ]);
 
@@ -207,5 +225,77 @@ exports.getAllComments = async (req, res) => {
     } catch (error) {
         console.error("Error during retrieve all comments: ", error);
         return res.status(500).json({message: "Internal server error."});
+    }
+};
+
+exports.addCommentToBlog = async (req, res) => {
+    try {
+
+        // Extract content type and ID from the request parameters
+        const {contentId } = req.params;
+
+        const contentType = req.path.includes("/tutorial/") ? "tutorial" : "blog";
+
+        console.log(contentType, contentId);
+        
+
+        // Initialize variable to hold content (either tutorial or blog)
+        let content;
+        if (contentType.toUpperCase() === "TUTORIAL") {
+            content = await tutorialModel.findById(contentId).lean(); // Use contentId directly
+        } else if (contentType.toUpperCase() === "BLOG") {
+            content = await blogModel.findById(contentId).lean(); // Use contentId directly
+        }
+        
+        console.log(contentType.toUpperCase());
+        
+
+        // If the content is not found, return a 404 error
+        if (!content) {
+            return res.status(404).json({ message: `${contentType} not found.` });
+        }
+
+        // Validate the comment body using Joi validator
+        const {error} = commentValidator.validate(req.body);
+        if(error){
+            return res.status(422).json({ errors: error.details.map(err => err.message) });
+        }
+
+        // Destructure comment fields from the request body
+        const { body, review, parentCommentId} = req.body;
+        
+
+        // Verify if the user is banned
+        const user = await userModel.findById(req.userId);
+        if (!user || user.status === "BANNED") {
+            return res.status(403).json({ message: "Access denied. User is banned." });
+        }
+
+        // Check if parentCommentId is provided and valid (for replies)
+        if (parentCommentId) {
+            const parentComment = await commentModel.findById(parentCommentId);
+            if (!parentComment) {
+                return res.status(404).json({ message: "Parent comment not found." });
+            }
+        }
+
+        // Create the new comment
+        const newComment = await commentModel.create({
+            body,
+            referenceType: contentType.toUpperCase(), // Set reference type as either 'TUTORIAL' or 'BLOG'
+            referenceId:content._id,    // Reference the ID of the related content
+            userId: req.userId,         // Set from the authenticated user (verifyToken)
+            isAccepted: false,          // Default status for new comments
+            review,
+            parentCommentId: parentCommentId || null // Set parentCommentId if it's a reply
+        });
+
+        if(newComment) {
+        return res.status(200).json({ message: "Comment added successfully", newComment });
+        }
+        
+    } catch (error) {
+        console.error("Error during add comment: ", error);
+        return res.status(500).json({message: "Internal server error."}); 
     }
 };

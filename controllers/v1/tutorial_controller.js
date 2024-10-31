@@ -52,7 +52,7 @@ exports.getAllSections = async (req, res)=> {
     try {
         const sections = await sectionModel
         .find({})
-        .populate("tutorialId", "title") // Populate only title of the related tutorial
+        .populate("referenceId", "title") // Populate only title of the related tutorial
         .lean();
 
         // If no sections found, return an empty array with a 200 status

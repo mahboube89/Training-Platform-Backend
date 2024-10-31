@@ -17,9 +17,13 @@ const CommentSchema = new mongoose.Schema({
         mainLength: 5,
         maxLength:100
     },
-    tutorialId: {
+    referenceType: {
+        type: String,
+        enum: ["BLOG", "TUTORIAL"],
+        required: true
+    },
+    referenceId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Tutorial",
         required: true,
         index: true
     },

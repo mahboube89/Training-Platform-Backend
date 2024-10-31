@@ -7,7 +7,7 @@
 
 // ----- Node modules -----
 const mongoose = require('mongoose');
-const { schema } = require('./user_model');
+
 
 const TutorialSchema = new mongoose.Schema({
     title: {
@@ -81,10 +81,10 @@ TutorialSchema.virtual("sections", {
 
 
 // Virtual for Comments linked to the tutorial
-schema.virtual("comments", {
+TutorialSchema.virtual("comments", {
     ref: "Comment",
     localField: "_id",
-    foreignField: "tutorialId"
+    foreignField: "referenceId"
 });
 
 module.exports = mongoose.model("Tutorial", TutorialSchema);

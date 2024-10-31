@@ -21,6 +21,7 @@ const contactUsRouter = require('./routes/v1/contactUs_route');
 const newsletterRouter = require('./routes/v1/newsletter_route');
 const searchRouter = require('./routes/v1/search_route');
 const notificationRouter = require('./routes/v1/notification_route');
+const blogRouter = require('./routes/v1/blog_route');
 
 
 // ----- Initial express -----
@@ -70,6 +71,10 @@ app.use("/v1/search", searchRouter);
 
 // Notification routes under /v1/notification
 app.use("/v1/notification", notificationRouter);
+
+// Blog routes under /v1/blog
+app.use("/v1/blog", blogRouter);
+
 
 
 module.exports = app;
