@@ -7,6 +7,7 @@
 
 // ----- Node modules -----
 const {isValidObjectId} = require ("mongoose");
+const nodemailer = require('nodemailer');
 
 // ----- Custom modules -----
 const contactUsModel = require("./../../models/contactUs_model");
@@ -103,9 +104,49 @@ exports.deleteOneTicket = async (req, res) => {
 exports.answerTicket = async (req, res) => {
 
     try {
+
+        const {email, answer} = req.body;
+
+        // Check if ticket exists
+        const findTicket = await contactUsModel.findOne( {email: email});
+        if(!findTicket) {
+            return res.status(404).json({ message: "No ticket found." });
+        }
+
+        // For more infos about nodemailer see : https://nodemailer.com/
+        // Create nodemailer transporter with secure credentials
+        let transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: "Admin-eamil@gmail.com",
+                pass: "your password in app password in google account in security"
+            }
+        });
+
+        // Email content
+        const responseDetails = {
+            from: "Admin-eamil@gmail.com",
+            to: email,
+            subject: "Answer to your ticket",
+            text: answer
+        };
         
+        // Send email and update ticket response status
+        transporter.sendMail(responseDetails, async(error, info) => {
+            if(error) {
+                return res.json({message: "Error during email sending: ", error});
+            }
+
+            // Mark ticket as responded in the database
+            findTicket.hasResponse = true;
+            await findTicket.save();
+
+            return res.json({message: "Emmail sent successfully, ticket updated."});
+        });
+
     } catch (error) {
-        
+        console.error("Error in answering ticket:", error.message);
+        return res.status(500).json({ message: "Internal server error." });
     }
     
 };
