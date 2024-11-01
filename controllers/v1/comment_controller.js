@@ -86,6 +86,74 @@ exports.addCommentToTutorial = async (req, res) => {
 
 
 
+exports.addCommentToBlog = async (req, res) => {
+    try {
+
+        // Extract content type and ID from the request parameters
+        const {contentId } = req.params;
+
+        const contentType = req.path.includes("/blog/") ? "blog" : "tutorial";
+
+
+        // Initialize variable to hold content (either tutorial or blog)
+        let content;
+        if (contentType.toUpperCase() === "TUTORIAL") {
+            content = await tutorialModel.findById(contentId).lean(); // Use contentId directly
+        } else if (contentType.toUpperCase() === "BLOG") {
+            content = await blogModel.findById(contentId).lean(); // Use contentId directly
+        }     
+
+        // If the content is not found, return a 404 error
+        if (!content) {
+            return res.status(404).json({ message: `${contentType} not found.` });
+        }
+
+        // Validate the comment body using Joi validator
+        const {error} = commentValidator.validate(req.body);
+        if(error){
+            return res.status(422).json({ errors: error.details.map(err => err.message) });
+        }
+
+        // Destructure comment fields from the request body
+        const { body, review, parentCommentId} = req.body;
+        
+
+        // Verify if the user is banned
+        const user = await userModel.findById(req.userId);
+        if (!user || user.status === "BANNED") {
+            return res.status(403).json({ message: "Access denied. User is banned." });
+        }
+
+        // Check if parentCommentId is provided and valid (for replies)
+        if (parentCommentId) {
+            const parentComment = await commentModel.findById(parentCommentId);
+            if (!parentComment) {
+                return res.status(404).json({ message: "Parent comment not found." });
+            }
+        }
+
+        // Create the new comment
+        const newComment = await commentModel.create({
+            body,
+            referenceType: contentType.toUpperCase(), // Set reference type as either 'TUTORIAL' or 'BLOG'
+            referenceId:content._id,    // Reference the ID of the related content
+            userId: req.userId,         // Set from the authenticated user (verifyToken)
+            isAccepted: false,          // Default status for new comments
+            review,
+            parentCommentId: parentCommentId || null // Set parentCommentId if it's a reply
+        });
+
+        if(newComment) {
+        return res.status(200).json({ message: "Comment added successfully", newComment });
+        }
+        
+    } catch (error) {
+        console.error("Error during add comment: ", error);
+        return res.status(500).json({message: "Internal server error."}); 
+    }
+};
+
+
 exports.deleteComment = async (req, res) => {
     
     try {
