@@ -26,19 +26,19 @@ exports.createBlogPost = async (req, res) => {
         if (error) {
 
             // Delete uploaded file if validation fails
-            // if (req.file) {
-            //     fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
-            // }
+            if (req.file) {
+                fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
+            }
 
             return res.status(422).json({ errors: error.details.map(err => err.message) });
         }
 
         // Ensure cover file is present before accessing `req.file.filename`
-        // if (!req.file) {
-        //     return res.status(400).json({ message: "Cover image is required." });
-        // }
-
-        const {title, description, content, authorId, categoryId, tags, isPublished } = req.body;
+        if (!req.file) {
+            return res.status(400).json({ message: "Cover image is required." });
+        }
+       
+        const {title, description, content, authorId, categoryId, tags } = req.body;
 
         // Validate categoryId
         const categoryExist = await categoryModel.findById(categoryId);
@@ -66,6 +66,7 @@ exports.createBlogPost = async (req, res) => {
             suffix += 1;
         }
 
+        // Create a new blog entry
         const blog = await blogModel.create({
             title,
             description,
@@ -73,12 +74,12 @@ exports.createBlogPost = async (req, res) => {
             authorId: req.userId,
             categoryId,
             tags: tags || [],
-            coverImage: "cover.png",
+            coverImage: req.file.filename,
             isPublished: false,
-            slug,
-            // coverImage: req.file.filename
+            slug
         });
 
+        // Populate related fields for response
         const populatedBlog = await blog.populate([
             { path: 'categoryId', select: '_id title' },        // Fetch title of the Category
             { path: 'authorId', select: '_id username' }        // Fetch name of the Instructor
@@ -88,9 +89,10 @@ exports.createBlogPost = async (req, res) => {
  
     } catch (error) {
 
-        // if (req.file) {
-        //     fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
-        // }
+        // Delete uploaded file if an error occurs
+        if (req.file) {
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
+        }
         console.error("Error during blog creation: ", error);
         return res.status(500).json({message: "Internal server error."});
     }
@@ -99,6 +101,17 @@ exports.createBlogPost = async (req, res) => {
 exports.getAllBlogPosts = async (req, res) => {
   
     try {
+
+        // Retrieve all blog posts and populate related fields
+        const AllBlogPosts = await blogModel.find({})
+        .populate([{ path: 'authorId', select: '_id username' },{ path: 'categoryId', select: '_id title' } ])
+        .lean();
+
+        if(!AllBlogPosts){
+            return res.status(404).json( {message: "No Blog found."});
+        }
+
+        return res.status(200).json( {message: "All blogs retrieved successfully." , AllBlogPosts});
         
     } catch (error) {
         console.error("Error during retrieving all blogs: ", error);
@@ -106,33 +119,120 @@ exports.getAllBlogPosts = async (req, res) => {
     }
 };
 
-exports.editBlogPost = async (req, res) => {
-  
-    try {
-        
-    } catch (error) {
-        console.error("Error during editting blog: ", error);
-        return res.status(500).json({message: "Internal server error."});
-    }
-};
 
 exports.getSingleBlogPost = async (req, res) => {
   
     try {
-        
+
+        const {slug} = req.params;
+
+        // Find a blog post by its slug and populate related fields
+        const blogPost = await blogModel.findOne({ slug: slug})
+        .populate([{ path: 'authorId', select: '_id username' },{ path: 'categoryId', select: '_id title' } ])
+        .lean();
+
+        if(!blogPost){
+            return res.status(404).json( {message: "Blog not found."});
+        }
+
+        return res.status(200).json( {message: "Blog retrieved successfully." , blogPost});
+
     } catch (error) {
         console.error("Error during get the blog: ", error);
         return res.status(500).json({message: "Internal server error."}); 
     }
 };
 
-exports.addCommentToPost = async (req, res) => {
-  
+
+exports.editBlogPost = async (req, res) => {
     try {
+        const {blogId} = req.params;
+        
+        // Check if blogId is a valid ObjectId
+        if (!isValidObjectId(blogId)) {
+            return res.status(422).json({ message: "Invalid blog ID." });
+        }
+
+        // Fetch existing blog post to validate and get current data
+        const existingBlog = await blogModel.findById(blogId);
+        if(!existingBlog){
+            return res.status(404).json({ message: "Blog not found." });
+        }
+
+        // Validate partial blog update details
+        const { error } = blogValidator.validate(req.body, { presence: "optional" });
+        if (error) {
+            if (req.file) {
+                fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
+            }
+            return res.status(422).json({ errors: error.details.map(err => err.message) });
+        }
+
+        // Fields to update
+        const { title, description, content, categoryId, tags } = req.body;
+
+        // Handle slug update if title is changed
+        if (title && title !== existingBlog.title) {
+            let slug = generateSlug(title);
+            let slugExists = await blogModel.findOne({ slug });
+            let suffix = 1;
+            while (slugExists) {
+                slug = generateSlug(title) + '-' + suffix;
+                slugExists = await blogModel.findOne({ slug });
+                suffix += 1;
+            }
+            existingBlog.slug = slug;
+            existingBlog.title = title;
+        }
+
+        // Handle category validation if updated
+        if (categoryId && categoryId !== existingBlog.categoryId) {
+            const categoryExists = await categoryModel.findById(categoryId);
+            if (!categoryExists) {
+                if (req.file) {
+                    fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
+                }
+                return res.status(404).json({ message: "Invalid category ID: category not found." });
+            }
+            existingBlog.categoryId = categoryId;
+        }
+
+        // Update other fields if they are present in the request
+        if (description) existingBlog.description = description;
+        if (content) existingBlog.content = content;
+        if (tags) existingBlog.tags = tags;
+        if (typeof isPublished !== "undefined") existingBlog.isPublished = isPublished;
+
+        // Handle cover image update if a new file is uploaded
+        if (req.file) {
+            // Remove the old cover image
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", existingBlog.coverImage));
+            // Update cover image with new file name
+            existingBlog.coverImage = req.file.filename;
+        }
+
+        // Save updated blog post
+        const updatedBlog = await existingBlog.save();
+
+        // Populate references for response
+        const populatedBlog = await updatedBlog.populate([
+            { path: 'categoryId', select: '_id title' },
+            { path: 'authorId', select: '_id username' }
+        ]);
+
+        return res.status(200).json({ message: "Blog updated successfully.", populatedBlog });
+
         
     } catch (error) {
-        console.error("Error during comment addition to blog: ", error);
-        return res.status(500).json({message: "Internal server error."}); 
+
+        // Delete uploaded file if an error occurs
+        if (req.file) {
+            fs.unlinkSync(path.join(__dirname, "..", "..", "public", "blogs", "covers", req.file.filename));
+        }
+
+        console.error("Error during editting blog: ", error);
+        return res.status(500).json({message: "Internal server error."});
     }
 };
+
 

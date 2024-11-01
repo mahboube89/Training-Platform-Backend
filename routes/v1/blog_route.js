@@ -33,9 +33,6 @@ router.route("/:blogId").put(verifyToken, checkRole("ADMIN", "AUTHOR"),blogContr
 router.route("/:slug").get(blogController.getSingleBlogPost);
 
 
-// Add Comment to Post (User or Admin)
-router.route("/:blogId/comments").get(blogController.addCommentToPost);
-
 
 
 module.exports = router;
