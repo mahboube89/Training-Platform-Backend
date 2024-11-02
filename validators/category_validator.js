@@ -16,7 +16,7 @@ const createCategorySchema = {
         stringMin: "Title must be at least 3 characters long",
         stringMax: "Title must be no longer than 30 characters"
     }},
-    href: {type: "string", min: 4, max: 30, optional: false, messages: {
+    slug: {type: "string", min: 4, max: 30, optional: false, messages: {
         stringMin: "Name must be at least 4 characters long",
         stringMax: "Name must be no longer than 30 characters"
     } },
@@ -29,7 +29,7 @@ const updateCategorySchema = {
         stringMin: "Title must be at least 3 characters long",
         stringMax: "Title must be no longer than 30 characters"
     }},
-    href: {type: "string", min: 4, max: 30, optional: true, messages: {
+    slug: {type: "string", min: 4, max: 30, optional: true, messages: {
         stringMin: "Name must be at least 4 characters long",
         stringMax: "Name must be no longer than 30 characters"
     } },

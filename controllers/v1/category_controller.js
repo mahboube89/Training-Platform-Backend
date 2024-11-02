@@ -13,6 +13,7 @@ const {isValidObjectId} = require ("mongoose");
 const categoryModel = require("./../../models/category_model");
 const {validateCreateCategory} = require("./../../validators/category_validator");
 const {validateUpdateCategory} = require("./../../validators/category_validator");
+const slugGenerator = require("./../../utils/slugGenerator-util");
 
 exports.createCategory = async(req, res) => {
     try {
@@ -24,10 +25,21 @@ exports.createCategory = async(req, res) => {
         }
 
         // Destructure validated fields from request body
-        const {title, href} = req.body;
+        const {title} = req.body;
+
+        const slug = await slugGenerator(title);
+
+        // Check for slug uniqueness
+        let slugExists = await categoryModel.findOne({ slug });
+        let suffix = 1;
+        while (slugExists) {
+            slug = generateSlug(title) + '-' + suffix;
+            slugExists = await categoryModel.findOne({ slug });
+            suffix += 1;
+        }
 
         // Attempt to create the category
-        const category = await categoryModel.create( {title , href});
+        const category = await categoryModel.create( {title , slug});
         if(!category) {
             return res.status(500).json({message: "Category creation failed."});
         }

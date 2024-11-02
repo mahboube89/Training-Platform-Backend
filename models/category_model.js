@@ -7,7 +7,6 @@
 
 // ----- Node modules -----
 const mongoose = require('mongoose');
-const { isLowercase } = require('validator');
 
 
 // ----- Mongoose schema for category -----
@@ -21,7 +20,7 @@ const CategorySchema = mongoose.Schema({
         maxLength: 30,
         lowercase: true
     },
-    href: {
+    slug: {
         type: String,
         required: true,
         unique: true,
