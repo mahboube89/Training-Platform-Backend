@@ -75,10 +75,6 @@ exports.deleteOneTicket = async (req, res) => {
     try {
         const {ticketId} = req.params;
 
-        console.log(ticketId);
-        
-        
-
         // Check if the provided ticket ID is valid
         if (!isValidObjectId(ticketId)) {
             return res.status(422).json({ message: "Invalid ticket ID." });
