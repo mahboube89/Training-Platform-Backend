@@ -6,6 +6,7 @@
 "use strict";
 
 // ----- Node modules -----
+const {isValidObjectId} = require("mongoose");
 
 // ----- Custom modules -----
 const menuModel = require("./../../models/menu_model");
@@ -87,10 +88,87 @@ exports.createMenu = async(req, res)=> {
 
 
 exports.getAllMenus = async (req, res) => {
+
+    try {
+
+        const [mainMenus, submenus] = await Promise.all([
+            menuModel.find({parentId: null}).populate({path: "categoryId", select: "_id title" }).sort({ order:1 }).lean(),
+            menuModel.find({parentId: { $ne: null}}).populate({path: "categoryId", select: "_id title" }).sort({ order:1 }).lean()
+        ]);
+
+        // If no menus found, return a 404 response
+        if (mainMenus.length === 0) {
+            return res.status(404).json({ message: "No menus found." });
+        }
+
+        // Create a mapping of main menu IDs to their submenus
+
+        const submenuMap = {}; // Initialize an empty object to map main menu IDs to their associated submenus
+
+        // Loop through each submenu to populate submenuMap
+        submenus.forEach(submenu => {
+            const parentId = submenu.parentId.toString();
+
+            // If this main menu ID doesn't have an entry yet, create an empty array for its submenus
+            if (!submenuMap[parentId]) {
+                submenuMap[parentId] = [];
+            }
+
+            // Add the current submenu to the array of its corresponding main menu in submenuMap
+            submenuMap[parentId].push(submenu);
+        });
+
+        // Create a new array of main menus, each with its associated submenus added
+        const menuWithSubmenu = mainMenus.map( mainMenu => ({
+            // Spread existing properties of the main menu
+            ...mainMenu, 
+            // Add a 'submenus' property: retrieve submenus from submenuMap by main menu ID, or use an empty array if none exist
+            submenus: submenuMap[mainMenu._id.toString()] || []
+        }));
+
+        return res.status(200).json({ message: "All Menus retrieved successfully. " , menuWithSubmenu});
+        
+    } catch (error) {
+        console.error("Error during add Menu: ", error);
+        return res.status(500).json({message: "Internal server error."});
+    }
     
 };
 
 
 exports.getSingleMenu = async (req, res) => {
+
+    try {
+        
+        const {menuId} = req.params;
     
+        // Check if menuId is a valid ObjectId
+        if (!isValidObjectId(menuId)) {
+            return res.status(422).json({ message: "Invalid submenu ID." });
+        }
+    
+        // Find the main menu by its ID and ensure it's not a submenu
+        const menu = await menuModel.findOne({ _id: menuId , parentId : null}).lean();
+    
+        // If no main menu is found, return a 404 error
+        if (!menu) {
+            return res.status(404).json({ message: "Menu not found" });
+        }
+    
+        // Find all submenus associated with this main menu
+        const submenus = await menuModel.find({ parentId: menuId}).lean();
+    
+        // Structure to hold the menu and its submenus
+        const menuWithSubmenu = {
+            ...menu, // Spread existing properties of the main menu
+            submenus: submenus || [] // Add submenus if they exist, otherwise an empty array
+        };
+    
+        return res.status(200).json({ message: "The menu retrieved successfully. " , menuWithSubmenu});
+
+    } catch (error) {
+        console.error("Error retrieving single menu: ", error);
+        return res.status(500).json({ message: "Internal server error." });
+    }
+
 };
