@@ -38,7 +38,7 @@ exports.register = async (req, res) => {
         if(userAlreadyExist) {
             
             if(userAlreadyExist.status === "BANNED") {
-                return res.status(403).json( {message: "Registration failed. This account is banned and cannot be used."}); // Forbidden
+                return res.status(409).json( {message: "Registration failed. This account is banned and cannot be used."}); // Forbidden
             }
 
             if(userAlreadyExist.email === email) {
@@ -97,7 +97,7 @@ exports.login = async(req, res) => {
 
         // Check if user exists
         if(!user) {
-            return res.status(401).json({message: "user not found."});
+            return res.status(404).json({message: "user not found."});
         }
 
         // Check if the user is banned

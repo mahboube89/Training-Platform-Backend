@@ -37,8 +37,8 @@ router.route("/:ticketId")
 .delete(verifyToken, checkAdmin, contactUsController.deleteOneTicket);
 
 
-// Delete a specific contact ticket by ticket ID (Protected, Admin only)
-// DELETE    http://localhost:4000/v1/contact/:ticketId
+// Answer Ticket (Protected, Admin only)
+// POST    http://localhost:4000/v1/contact/answer
 router.route("/answer")
 .post(verifyToken, checkAdmin, contactUsController.answerTicket);
 

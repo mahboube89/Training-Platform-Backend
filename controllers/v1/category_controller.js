@@ -125,11 +125,23 @@ exports.updateCategory = async (req, res) => {
             return res.status(404).json({ message: "Category not found." });
         }
 
-
         let updateFiels = {};
-        if (req.body.title) updateFiels.title = req.body.title
-        if (req.body.href) updateFiels.href = req.body.href
 
+        if (req.body.title) {
+            updateFiels.title = req.body.title
+        
+            updateFiels.slug = await slugGenerator(title);
+
+            // Check for slug uniqueness
+            let slugExists = await categoryModel.findOne({ slug });
+            let suffix = 1;
+            while (slugExists) {
+                slug = generateSlug(title) + '-' + suffix;
+                slugExists = await categoryModel.findOne({ slug });
+                suffix += 1;
+            }
+        }
+        
         const category = await categoryModel.findByIdAndUpdate( req.params.id ,updateFiels, {new : true});
         if(!category) {
             return res.status(500).json({ message: "Category not found to delete." });

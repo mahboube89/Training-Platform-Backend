@@ -39,7 +39,7 @@ router.route("/sections").get(verifyToken, checkAdmin, tutorialController.getAll
 
 // Add a new section to a specific tutorial (Restricted to ADMIN and INSTRUCTOR)
 // POST http://localhost:4000/v1/tutorial/:tutorialId/sections
-router.route("/:tutorialId/sections").post( uploadVideo.single("video"), verifyTokencheckRoles("ADMIN", "INSTRUCTOR"),tutorialController.addSectionToTutorial);
+router.route("/:tutorialId/sections").post( uploadVideo.single("video"), verifyToken,checkRoles("ADMIN", "INSTRUCTOR"),tutorialController.addSectionToTutorial);
 
 
 // Get details of a specific tutorial section (Public)
