@@ -75,6 +75,10 @@ app.use("/v1/notification", notificationRouter);
 // Blog routes under /v1/blog
 app.use("/v1/blog", blogRouter);
 
+// Menus routes under /v1/menus
+app.use("/v1/menus", menuRouter);
+
+
 
 
 module.exports = app;
