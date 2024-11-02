@@ -133,7 +133,4 @@ exports.login = async(req, res) => {
 };
 
 
-exports.getMe = async(req, res) => {
-
-};
 

@@ -15,23 +15,27 @@ const verifyToken = require('./../../middlewares/tokenVerify_middleware');
 const checkRole = require('./../../middlewares/checkRole_middleware');
 const blogController = require("./../../controllers/v1/blog_controller");
 
-// ----- Routes -----
+
+// ----- Blog Routes -----
 
 // Create a Blog Post (Admin or Author Only)
+// POST     http://localhost:4000/v1/blog
 router.route("/").post(verifyToken, checkRole("ADMIN", "AUTHOR"),blogController.createBlogPost);
 
 
 // Get All Blog Posts (Public)
+// GET      http://localhost:4000/v1/blog
 router.route("/").get(blogController.getAllBlogPosts);
 
 
 // Edit a Blog Post (Admin or Author Only)
+// PUT      http://localhost:4000/v1/blog/:blogId
 router.route("/:blogId").put(verifyToken, checkRole("ADMIN", "AUTHOR"),blogController.editBlogPost);
 
 
-// Get Single Blog Post by Slug (Public)
+// Get Single Blog Post by blog slug (Public)
+// GET      http://localhost:4000/v1/blog/:slug
 router.route("/:slug").get(blogController.getSingleBlogPost);
-
 
 
 

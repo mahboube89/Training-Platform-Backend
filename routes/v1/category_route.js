@@ -18,14 +18,29 @@ const checkAdmin = require('./../../middlewares/checkAdmin_middleware');
 const sanitizeInputs = require('./../../middlewares/sanitize_middleware');
 
 
+// ----- Category Routes -----
 
+
+
+// Create a new category (Protected, Admin only)
+// POST    http://localhost:4000/v1/category
 router.route("/")
 .post(verifyToken, sanitizeInputs, checkAdmin, categoryController.createCategory)
-.get(categoryController.getAllCategory);
+
+ // Retrieve all categories (Public)
+ // GET    http://localhost:4000/v1/category
+.get(categoryController.getAllCategory);                                           
 
 
+// Delete an existing category by ID (Protected, Admin only)
+// DELETE    http://localhost:4000/v1/category/:id
 router.route("/:id")
 .delete(verifyToken, checkAdmin, categoryController.removeCategory)
-.put(verifyToken, checkAdmin, categoryController.updateCategory)
+
+// Update an existing category by ID (Protected, Admin only)
+// PUT    http://localhost:4000/v1/category/:id
+.put(verifyToken, checkAdmin, categoryController.updateCategory)    
+
+
 
 module.exports = router;

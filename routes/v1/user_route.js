@@ -17,23 +17,33 @@ const sanitizeInputs = require('./../../middlewares/sanitize_middleware');
 
 
 
-// ----- Routes -----
+// ----- User Routes -----
 
-// Get all users - Admin
-// Update user Infos - All
+
+// Retrieve all users (Restricted to ADMIN)
+// GET http://localhost:4000/v1/users
 router.route("/")
 .get(verifyToken, checkAdmin, userController.getAllUsers)
+
+// Update user information (Authenticated users only, with input sanitization)
+// PUT http://localhost:4000/v1/users
 .put(verifyToken, sanitizeInputs, userController.updateUserInfos);
 
-// Remove a user - Admin
+
+// Remove a specific user (Restricted to ADMIN)
+// DELETE http://localhost:4000/v1/users/:id
 router.route("/:id")
 .delete(verifyToken, checkAdmin, userController.removeUser);
 
-// Ban a user - Admin
+
+// Ban a specific user (Restricted to ADMIN)
+// POST http://localhost:4000/v1/users/ban/:id
 router.route("/ban/:id")
 .post(verifyToken, checkAdmin, userController.banUser);
 
-// Change role to Author - Admin
+
+// Change a user's role to "Author" (Restricted to ADMIN)
+// PUT http://localhost:4000/v1/users/role
 router.route("/role")
 .put(verifyToken, checkAdmin, userController.makeAuthor);
 

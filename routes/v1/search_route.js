@@ -13,10 +13,14 @@ const router = express.Router();
 // ----- Custom modules -----
 const searchController = require("./../../controllers/v1/search_controller");
 
-// ----- Routes -----
+
+
+// ----- Search Routes -----
+
+
+// Global search for a keyword across tutorials(Public)
+// GET    http://localhost:4000/v1/search/:keyword
 router.route("/:keyword").get(searchController.findKeywordGlobal);
-
-
 
 
 
