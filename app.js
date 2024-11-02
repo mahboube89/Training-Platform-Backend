@@ -22,6 +22,7 @@ const newsletterRouter = require('./routes/v1/newsletter_route');
 const searchRouter = require('./routes/v1/search_route');
 const notificationRouter = require('./routes/v1/notification_route');
 const blogRouter = require('./routes/v1/blog_route');
+const menuRouter = require('./routes/v1/menu_router');
 
 
 // ----- Initial express -----

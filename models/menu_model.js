@@ -20,7 +20,6 @@ const MenuSchema = new mongoose.Schema({
     },
     path: {
         type: String,
-        required: true,
         trim: true,
         unique: true
     },

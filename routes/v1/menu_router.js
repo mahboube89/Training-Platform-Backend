@@ -15,7 +15,7 @@ const router = express.Router();
 const verifyToken = require('./../../middlewares/tokenVerify_middleware');
 const checkAdmin = require('./../../middlewares/checkAdmin_middleware');
 
-const menuController = require("./../../controllers/v1/menu_controller.js");
+const menuController = require("./../../controllers/v1/menu_controller");
 
 // ----- Routes -----
 

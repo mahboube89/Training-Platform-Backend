@@ -21,8 +21,7 @@ const menuValidator = Joi.object({
         .required(),
 
     path: Joi.string()
-        .trim()
-        .required(),
+        .trim(),
 
     order: Joi.number()
         .integer()
