@@ -13,7 +13,7 @@ const jwt = require('jsonwebtoken');
 // ----- Custom modules -----
 const userModel = require('../../models/user_model');
 const registerValidator = require('../../validators/register_validator');
-const banUserModel = require('./../../models/userBan_model');
+
 
 
 // ----- Register User -----
@@ -83,10 +83,10 @@ exports.register = async (req, res) => {
 };
 
 
+// ----- Login User -----
 exports.login = async(req, res) => {
 
     try {
-        console.log(req.body);
         
         const {identifier, password} = req.body;
 
