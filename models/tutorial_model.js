@@ -37,7 +37,7 @@ const TutorialSchema = new mongoose.Schema({
         ref: "Category",
         required: true
     },
-    href: {
+    slug: {
         type: String,
         required: true
     },

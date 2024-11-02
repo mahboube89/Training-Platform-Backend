@@ -8,15 +8,13 @@
 // ----- Node modules -----
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const { uploadCover, uploadVideo } = require("./../../utils/multerUploader_util");
-// const multerStorage = require("./../../utils/multerUploader_util");
+
 
 // ----- Custom modules -----
 const tutorialController = require('../../controllers/v1/tutorial_controller');
 const verifyToken = require('../../middlewares/tokenVerify_middleware');
 const checkAdmin = require('../../middlewares/checkAdmin_middleware');
-const sanitizeInputs = require('../../middlewares/sanitize_middleware');
 const checkRoles = require('../../middlewares/checkRole_middleware');
 
 
@@ -47,7 +45,7 @@ router.route("/:tutorialId/sections")
 );
 
 
-router.route("/:href/sections/:sectionId").get(tutorialController.getTutorialSectionInfo);
+router.route("/:tutorialSlug/sections/:sectionId").get(tutorialController.getTutorialSectionInfo);
 
 
 router.route("/sections/:sectionId")
@@ -57,15 +55,14 @@ router.route("/sections/:sectionId")
 router.route("/:tutorialId/enroll").post(verifyToken, tutorialController.enrollInTutorial);
 
 
-router.route("/category/:categoryHref").get(tutorialController.getTutorialByCategory)
+router.route("/category/:categorySlug").get(tutorialController.getTutorialByCategory)
 
 
-router.route("/details/:tutorialHref").get(verifyToken, tutorialController.getOneTutorialDetails);
+router.route("/details/:tutorialSlug").get(verifyToken, tutorialController.getOneTutorialDetails);
 
 
 router.route("/:tutorialId").delete(verifyToken, checkAdmin, tutorialController.deleteTutorialById)
 .get(tutorialController.getRelatedTutorials);
-
 
 
 

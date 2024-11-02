@@ -22,6 +22,8 @@ const commentModel = require('./../../models/comment_model');
 const tutorialValidator = require("./../../validators/tutorial_validator");
 const sectionValidator = require("./../../validators/section_validator");
 
+const slugGenerator = require("./../../utils/slugGenerator-util");
+
 
 exports.getAllTutorials = async (req, res) => {
 
@@ -90,7 +92,19 @@ exports.createTutorial = async (req, res) => {
 
 
         // Destructure required fields from request body
-        const {title, description, instructorId, categoryId, href, price, isFree, status, onSale} = req.body;
+        const {title, description, instructorId, categoryId, price, isFree, status, onSale} = req.body;
+
+
+        const slug = await slugGenerator(title);
+
+        // Check for slug uniqueness
+        let slugExists = await categoryModel.findOne({ slug });
+        let suffix = 1;
+        while (slugExists) {
+            slug = generateSlug(title) + '-' + suffix;
+            slugExists = await categoryModel.findOne({ slug });
+            suffix += 1;
+        }
         
         // Check for duplicate title in the same category
         const duplicateTutorial = await tutorialModel.findOne({ title, categoryId });
@@ -121,7 +135,7 @@ exports.createTutorial = async (req, res) => {
             description,
             instructorId,
             categoryId,
-            href,
+            slug,
             price,
             isFree,
             status,
@@ -226,8 +240,8 @@ exports.getTutorialSectionInfo = async(req,res) => {
             return res.status(422).json({ message: "Invalid tutorial ID."});
         } 
         
-        // Fetch tutorial by href
-        const tutorial = await tutorialModel.findOne({ href: req.params.href}).lean();
+        // Fetch tutorial by slug
+        const tutorial = await tutorialModel.findOne({ slug: req.params.tutorialSlug}).lean();
         if (!tutorial) {
             return res.status(404).json({ message: "Tutorial not found." });
         }
@@ -344,10 +358,10 @@ exports.enrollInTutorial = async (req, res) => {
 exports.getTutorialByCategory = async (req, res) => {
     try {
 
-        const {categoryHref} = req.params;
+        const {categorySlug} = req.params;
 
         // Check if the category exists
-        const category = await categoryModel.findOne( { href: categoryHref});
+        const category = await categoryModel.findOne( { slug: categorySlug});
         if(!category) {
             return res.status(404).json({ message: "Category not found." });
         }
@@ -371,11 +385,11 @@ exports.getTutorialByCategory = async (req, res) => {
 exports.getOneTutorialDetails = async (req, res) => {
     try {
 
-        // Destructure tutorialHref from req.params
-        const {tutorialHref} = req.params;
+        // Destructure tutorialSlug from req.params
+        const {tutorialSlug} = req.params;
         
-        // Find the tutorial by href and populate category and instructor details
-        const tutorial = await tutorialModel.findOne( {href: tutorialHref})
+        // Find the tutorial by slug and populate category and instructor details
+        const tutorial = await tutorialModel.findOne( {slug: tutorialSlug})
         .populate([ { path: "categoryId" , select: "title -_id"}, { path: "instructorId", select: "username -_id " }])
         .lean();
 
@@ -460,7 +474,7 @@ exports.getRelatedTutorials = async (req, res) => {
         const relatedTutorials = await tutorialModel.find({
             categoryId: mainTutorial.categoryId,
             _id: {$ne: mainTutorial._id}
-        }).select( "title href cover categoryId").populate({ path: "categoryId", select: "title -_id" }).limit(5).lean();
+        }).select( "title slug cover categoryId").populate({ path: "categoryId", select: "title -_id" }).limit(5).lean();
 
         return res.status(200).json({ message: "Related tutorials retrieved successfully", relatedTutorials });
 

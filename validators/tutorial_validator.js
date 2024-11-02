@@ -19,7 +19,7 @@ const tutorialSchema = Joi.object( {
     description: Joi.string().max(500).required(),
     instructorId: Joi.string().required(),
     categoryId: Joi.string().pattern(objectIdPattern),
-    href: Joi.string().required(),
+    slug: Joi.string(),
     price: Joi.number().min(0).when('isFree', { is: true, then: Joi.optional() }),
     isFree: Joi.boolean().default(false),
     status: Joi.string().valid("COMPLETE", "INCOMPLETE").required(),
