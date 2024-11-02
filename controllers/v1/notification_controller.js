@@ -23,10 +23,7 @@ exports.sendNotification = async (req, res) => {
 
         // Retrieve senderId, set in token verification middleware
         const senderId = req.userId.toString();
-        console.log(senderId);
-        console.log(typeof(senderId));
-        
-        
+
         // Validate the notification details
         const { error } = notificationValidator.validate({ senderId, recipientId, title, message, type });
         if (error) {
